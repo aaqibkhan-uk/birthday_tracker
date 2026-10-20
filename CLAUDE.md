@@ -325,7 +325,11 @@ CREATE TABLE user_profile (
 └── backend/                  # Vercel project
     ├── api/generate.ts
     └── lib/
-        ├── providers/        # mock.ts, pollinations.ts, cloudflare.ts, index.ts
+        ├── handleGenerate.ts # request handling, testable without Vercel
+        ├── validation.ts     # request validation, allowed styles
+        ├── errors.ts
+        ├── png.ts            # tiny PNG encoder for mock placeholders
+        ├── providers/        # mock.ts, pollinations.ts, cloudflare.ts, index.ts, types.ts
         ├── moderation.ts
         ├── promptTemplate.ts
         └── rateLimit.ts      # Upstash daily counter
@@ -348,6 +352,10 @@ Errors (JSON `{ "error": { "code": "...", "message": "..." } }`):
 - `422 prompt_rejected`: failed moderation (client: does not count toward cap)
 - `429 daily_limit_reached`: global budget exhausted
 - `502 provider_error`: all providers failed (client: retry; does not count toward cap)
+- `405 method_not_allowed`: not a POST
+- `500 internal_error`: server misconfigured (e.g. unknown `IMAGE_PROVIDER`)
+
+Request rules: `prompt` trimmed, 1–300 chars; `style` optional, must be one of `watercolour | cartoon | minimalist | vintage | playful`; `count` optional integer 1–3 (default 3). Mock mode returns `image/png`.
 
 Backend rules:
 - Validate input, moderate, wrap the prompt in the template, call providers in order (primary → fallback), return images.
@@ -442,3 +450,6 @@ Record notable decisions here (date, decision, reason). Keep entries short.
 | 2026-10-20 | Expo SDK 57 (not 58); routes live in `mobile/src/app/` | App Store Expo Go is 57.0.9 and supports SDK 57 only; SDK 58 Expo Go not yet available. Upgrade when it is. Routes follow current Expo Router template convention (section 10 updated) |
 | 2026-10-20 | `mobile/` and `backend/` are independent npm projects (no workspaces) | Avoids Metro monorepo configuration |
 | 2026-10-20 | ESLint `no-explicit-any` set to error | Enforces §6; justified uses need an eslint-disable comment with a reason |
+| 2026-10-20 | Backend uses the web-standard `fetch` handler; logic in `lib/handleGenerate.ts`; tests with Vitest | Vercel's recommended signature; testable with plain `Request` objects, no Vercel login needed |
+| 2026-10-20 | `style` restricted to a fixed allowlist; unset `IMAGE_PROVIDER` defaults to `mock` | Stops arbitrary text entering the prompt via `style`; a misconfigured deploy costs nothing |
+| 2026-10-20 | Mock images are generated PNG gradients (768×1072), no external calls | React Native can't render SVG out of the box; zero cost, works offline |
