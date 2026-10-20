@@ -7,7 +7,6 @@
     "node": "24.x"
   },
   "scripts": {
-    "dev": "vercel dev",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
