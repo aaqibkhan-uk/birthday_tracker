@@ -439,6 +439,6 @@ Record notable decisions here (date, decision, reason). Keep entries short.
 | 2026-10-20 | `getNextReminder` advances year by year until the reminder is in the future | "This year, else next year" can still return a past date when the offset crosses a year boundary |
 | 2026-10-20 | Delivery: order day not counted; weekend orders count from Monday; can arrive if delivery ≤ birthday | Removes ambiguity in the delivery estimate |
 | 2026-10-20 | Primary test device: iPhone | User's phone; iOS keeps local notifications after force-quit |
-| 2026-10-20 | Expo SDK 58; routes live in `mobile/src/app/` | Latest stable SDK; current Expo Router template convention (section 10 updated) |
+| 2026-10-20 | Expo SDK 57 (not 58); routes live in `mobile/src/app/` | App Store Expo Go is 57.0.9 and supports SDK 57 only; SDK 58 Expo Go not yet available. Upgrade when it is. Routes follow current Expo Router template convention (section 10 updated) |
 | 2026-10-20 | `mobile/` and `backend/` are independent npm projects (no workspaces) | Avoids Metro monorepo configuration |
 | 2026-10-20 | ESLint `no-explicit-any` set to error | Enforces §6; justified uses need an eslint-disable comment with a reason |
