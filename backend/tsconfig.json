@@ -12,5 +12,5 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["api", "lib", "tests"]
+  "include": ["api", "lib", "tests", "scripts"]
 }
