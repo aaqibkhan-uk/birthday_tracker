@@ -418,11 +418,11 @@ High-level plan for the week. Each milestone ends with something runnable. Updat
 
 ### Milestone 0: Setup and spikes (Day 1)
 
-- [ ] Repo structure, git init, `.gitignore`, README stub, `docs/build-log.md`
-- [ ] Expo app scaffolded (TypeScript, Expo Router, ESLint, Prettier, Jest)
-- [ ] Spike: schedule a local notification 2 minutes ahead; confirm it fires with the app force-quit on a real phone
-- [ ] Backend scaffolded on Vercel with `/api/generate` in mock mode
-- [ ] Spike: call the real image provider from a script; note quality, speed, watermark, limits
+- [x] Repo structure, git init, `.gitignore`, README stub, `docs/build-log.md`
+- [x] Expo app scaffolded (TypeScript, Expo Router, ESLint, Prettier, Jest)
+- [x] Spike: schedule a local notification 2 minutes ahead; confirm it fires with the app force-quit on a real phone
+- [x] Backend scaffolded on Vercel with `/api/generate` in mock mode (linked; verified with `vercel dev`)
+- [x] Spike: call the real image provider from a script; note quality, speed, watermark, limits (Cloudflare done; Pollinations script ready, not run)
 
 ### Milestone 1: Data and friends (Day 2)
 
@@ -506,3 +506,5 @@ Record notable decisions here (date, decision, reason). Keep entries short.
 | 2026-10-24 | Cloudflare Workers AI (`flux-2-klein-4b`) primary, Pollinations fallback (supersedes 2026-10-20 order) | Pollinations now needs a key and its free Pollen is one-off; Cloudflare's 10k Neurons/day renews daily and supports portrait sizes. Research: `docs/image-providers.md` |
 | 2026-10-24 | Provider switching via `IMAGE_PROVIDERS` chain + registry, per-provider timeout, shared contract tests | Swapping or reordering providers is config only; adding one is one file + one registry line |
 | 2026-10-24 | `DAILY_GENERATION_LIMIT` default 20 rounds | Keeps Cloudflare inside its free daily allocation with headroom |
+| 2026-10-24 | Keep `PROVIDER_TIMEOUT_MS` at 25 s for now (user decision) | **Open issue for Milestone 4:** the Cloudflare spike round took ~26.5 s (21–26 s per image), so at 25 s the primary will usually time out and fall back. Revisit when implementing the Cloudflare provider |
+| 2026-10-24 | Never spend provider credits (Cloudflare Neurons, Pollinations Pollen) without the user's explicit approval per run | £0 budget, small allowances. Tests stub `fetch`; local dev uses `IMAGE_PROVIDERS=mock` |
