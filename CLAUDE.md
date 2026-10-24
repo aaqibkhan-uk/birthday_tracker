@@ -162,10 +162,10 @@ Do not build these unless explicitly asked:
 | ---------------------- | ---------------------------------------------------------------------------------------------- |
 | Hosting                | Vercel Hobby (free), plain project with an `api/` folder, Node.js runtime (not Edge)           |
 | Endpoint               | `POST /api/generate`                                                                           |
-| Image provider         | Pollinations (primary), Cloudflare Workers AI via REST (fallback), behind a provider interface |
+| Image provider         | Cloudflare Workers AI `flux-2-klein-4b` (primary), Pollinations (fallback), behind a provider interface; see `docs/image-providers.md` |
 | Daily cap / rate limit | Upstash Redis (via Vercel Marketplace)                                                         |
 | Moderation             | Keyword blocklist + provider built-in filters                                                  |
-| Mock mode              | `IMAGE_PROVIDER=mock` returns 3 placeholder images instantly, for UI development at zero cost  |
+| Mock mode              | `IMAGE_PROVIDERS=mock` returns 3 placeholder images instantly, for UI development at zero cost |
 
 Note: free-tier details (rate limits, watermarks, model names) change often. Verify against current provider docs when implementing, and keep the provider choice swappable.
 
@@ -354,7 +354,7 @@ CREATE TABLE user_profile (
         ├── validation.ts     # request validation, allowed styles
         ├── errors.ts
         ├── png.ts            # tiny PNG encoder for mock placeholders
-        ├── providers/        # mock.ts, pollinations.ts, cloudflare.ts, index.ts, types.ts
+        ├── providers/        # registry.ts (add providers here), index.ts (chain), parallel.ts, errors.ts, types.ts, mock.ts, cloudflare.ts, pollinations.ts
         ├── moderation.ts
         ├── promptTemplate.ts
         └── rateLimit.ts      # Upstash daily counter
@@ -392,7 +392,7 @@ Errors (JSON `{ "error": { "code": "...", "message": "..." } }`):
 - `429 daily_limit_reached`: global budget exhausted
 - `502 provider_error`: all providers failed (client: retry; does not count toward cap)
 - `405 method_not_allowed`: not a POST
-- `500 internal_error`: server misconfigured (e.g. unknown `IMAGE_PROVIDER`)
+- `500 internal_error`: server misconfigured (e.g. unknown provider in `IMAGE_PROVIDERS`, missing key)
 
 Request rules: `prompt` trimmed, 1–300 chars; `style` optional, must be one of `watercolour | cartoon | minimalist | vintage | playful`; `count` optional integer 1–3 (default 3). Mock mode returns `image/png`.
 
@@ -403,7 +403,8 @@ Backend rules:
 - Portrait aspect ratio approx. 5:7 (e.g. 768×1072 or nearest supported).
 - Generate the 3 images in parallel.
 - Log nothing that identifies a user. Never log full prompts in production.
-- Environment variables: `IMAGE_PROVIDER` (`mock` | `pollinations` | `cloudflare`), provider keys, `UPSTASH_*`, `DAILY_GENERATION_LIMIT`. Document them in `backend/.env.example`.
+- Environment variables: `IMAGE_PROVIDERS` (ordered, comma-separated chain of `mock` | `cloudflare` | `pollinations`; default `mock`), `PROVIDER_TIMEOUT_MS` (per provider, default 25000), provider keys, `UPSTASH_*`, `DAILY_GENERATION_LIMIT`. Document them in `backend/.env.example`.
+- Provider chain: each provider gets its own timeout; on failure, timeout or an invalid response the next one is tried. A provider's own safety refusal (`PromptRejectedError`) stops the chain and returns `422`. Every provider must pass the shared contract tests (`backend/tests/providerContract.ts`).
 
 ### App config
 
@@ -447,7 +448,7 @@ High-level plan for the week. Each milestone ends with something runnable. Updat
 
 ### Milestone 4: Real generation (Day 5)
 
-- [ ] Pollinations provider, Cloudflare fallback
+- [ ] Cloudflare provider (primary), Pollinations fallback (registry + chain infrastructure already in place)
 - [ ] Moderation blocklist, prompt template
 - [ ] Upstash daily limit
 - [ ] Deployed to Vercel; app pointed at deployed URL
@@ -500,5 +501,8 @@ Record notable decisions here (date, decision, reason). Keep entries short.
 | 2026-10-20 | `mobile/` and `backend/` are independent npm projects (no workspaces)                                | Avoids Metro monorepo configuration                                                                                                                                                    |
 | 2026-10-20 | ESLint `no-explicit-any` set to error                                                                | Enforces §6; justified uses need an eslint-disable comment with a reason                                                                                                               |
 | 2026-10-20 | Backend uses the web-standard `fetch` handler; logic in `lib/handleGenerate.ts`; tests with Vitest   | Vercel's recommended signature; testable with plain `Request` objects, no Vercel login needed                                                                                          |
-| 2026-10-20 | `style` restricted to a fixed allowlist; unset `IMAGE_PROVIDER` defaults to `mock`                   | Stops arbitrary text entering the prompt via `style`; a misconfigured deploy costs nothing                                                                                             |
+| 2026-10-20 | `style` restricted to a fixed allowlist; unset `IMAGE_PROVIDERS` defaults to `mock`                  | Stops arbitrary text entering the prompt via `style`; a misconfigured deploy costs nothing                                                                                             |
 | 2026-10-20 | Mock images are generated PNG gradients (768×1072), no external calls                                | React Native can't render SVG out of the box; zero cost, works offline                                                                                                                 |
+| 2026-10-24 | Cloudflare Workers AI (`flux-2-klein-4b`) primary, Pollinations fallback (supersedes 2026-10-20 order) | Pollinations now needs a key and its free Pollen is one-off; Cloudflare's 10k Neurons/day renews daily and supports portrait sizes. Research: `docs/image-providers.md` |
+| 2026-10-24 | Provider switching via `IMAGE_PROVIDERS` chain + registry, per-provider timeout, shared contract tests | Swapping or reordering providers is config only; adding one is one file + one registry line |
+| 2026-10-24 | `DAILY_GENERATION_LIMIT` default 20 rounds | Keeps Cloudflare inside its free daily allocation with headroom |

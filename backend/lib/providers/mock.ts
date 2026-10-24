@@ -1,4 +1,4 @@
-// IMAGE_PROVIDER=mock: instant placeholder images for UI development at zero cost.
+// IMAGE_PROVIDERS=mock: instant placeholder images for UI development at zero cost.
 import { encodeRowPng, type Rgb } from '../png.js';
 import type { GeneratedImage, ImageProvider } from './types.js';
 
@@ -43,7 +43,8 @@ function placeholders(): string[] {
 
 export const mockProvider: ImageProvider = {
   name: 'mock',
-  async generate(request): Promise<GeneratedImage[]> {
+  async generate(request, { signal }): Promise<GeneratedImage[]> {
+    signal.throwIfAborted();
     const images = placeholders();
     return Array.from({ length: request.count }, (_, i) => ({
       base64: images[i % images.length] as string,
