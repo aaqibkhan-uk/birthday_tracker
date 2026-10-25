@@ -64,3 +64,12 @@ Running notes for the blog post. Newest entries at the bottom.
 - Deployed to Vercel with Upstash attached from the Marketplace. First snag: the project's Root Directory is `backend`, so deploying from inside `backend/` looked for `backend/backend`. Deploying from the repo root fixed it.
 - First real round through the deployed backend (1 image, to save credits): 14 s, 768×1072 JPEG. The new template worked: the top third is plain sky, and the fox's book cover is blank.
 
+## 2026-10-26: Milestone 5 (preview and checkout)
+
+- The preview opens like a real card: tap it or swipe left, and the front swings open on its left edge to show the message on the right. It is a few dozen lines of Reanimated: one number from 0 (closed) to 1 (open) drives the cover's rotation, the card's size and position, and a faint shadow as the cover passes the middle. The cover swaps its face at the halfway point instead of relying on `backfaceVisibility`, which is unreliable on Android.
+- The inside message always fits: a small pure function picks the biggest font size at which the text fits the page, from the message length and the page width. Short messages are big; a 500-character one is small but never cut off.
+- Approving a card freezes it: change anything afterwards and it goes back to draft, enforced in the database layer rather than the screens.
+- Checkout is entirely mocked. Choose the friend's address or your own (missing ones are typed in and can be saved), see the estimated delivery with a warning if it will be late, then "Pay (demo)" with no card fields at all. The confirmation email is shown on screen, never sent.
+- Placing an order copies the chosen picture to its own file first, so the order is a complete snapshot that survives editing or deleting the friend. Tests cover the order of steps, including cleaning up the copy if saving fails.
+- The new linter rules (React Compiler) pushed two good habits: shared animation values use `get()`/`set()` rather than `.value`, and forms are mounted once their data has loaded instead of copying data into state in an effect.
+

@@ -27,6 +27,11 @@ describe('getResumeStep', () => {
     expect(getResumeStep(true, false)).toBe('designs');
     expect(getResumeStep(true, true)).toBe('message');
   });
+
+  it('resumes an approved card at the preview', () => {
+    expect(getResumeStep(true, true, true)).toBe('preview');
+    expect(getResumeStep(true, false, true)).toBe('designs');
+  });
 });
 
 describe('isCardStyle', () => {

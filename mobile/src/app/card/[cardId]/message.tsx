@@ -83,8 +83,10 @@ export default function MessageScreen() {
         <Text style={styles.saved}>Your card is saved as you go.</Text>
 
         <View style={styles.actions}>
-          {/* The interactive preview and checkout are built in Milestone 5. */}
-          <Button label="Preview card (coming soon)" onPress={() => {}} disabled />
+          <Button
+            label="Preview card"
+            onPress={() => router.push({ pathname: '/card/[cardId]/preview', params: { cardId } })}
+          />
           <Button label="Done for now" variant="secondary" onPress={done} />
         </View>
       </ScrollView>

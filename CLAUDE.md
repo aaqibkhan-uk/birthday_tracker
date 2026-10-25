@@ -339,7 +339,8 @@ CREATE TABLE user_profile (
 │       │   ├── friend/[id].tsx   # Friend detail (Create/Resume card)
 │       │   ├── friend/new.tsx    # Add / edit friend
 │       │   ├── card/[cardId]/    # describe, designs, message, preview
-│       │   └── checkout/[cardId]/ # destination, payment, confirmation, email-preview
+│       │   ├── checkout/[cardId]/ # destination, payment, confirmation, email-preview
+│       │   └── order/[orderId].tsx # read-only past order
 │       ├── domain/           # pure logic + tests (dates, schedule, delivery)
 │       ├── db/               # database.ts (Db interface, init), migrations.ts, repositories/, testDb.ts (tests only)
 │       ├── services/         # notifications, image API client, file storage
@@ -455,10 +456,10 @@ High-level plan for the week. Each milestone ends with something runnable. Updat
 
 ### Milestone 5: Preview and checkout (Day 6)
 
-- [ ] Interactive card preview (open/flip animation)
-- [ ] Destination + address entry, delivery estimate + warning
-- [ ] Mock payment, confirmation, simulated email screen
-- [ ] Order history (read-only snapshots)
+- [x] Interactive card preview (open/flip animation)
+- [x] Destination + address entry, delivery estimate + warning
+- [x] Mock payment, confirmation, simulated email screen
+- [x] Order history (read-only snapshots)
 
 ### Milestone 6: Test and polish (Day 7)
 
@@ -539,3 +540,11 @@ Record notable decisions here (date, decision, reason). Keep entries short.
 | 2026-10-25 | Pollinations provider built but left out of the chain (`IMAGE_PROVIDERS=cloudflare`) until a key is added; its safety-refusal detection is unverified | No key yet; avoids spending one-off Pollen |
 | 2026-10-25 | `EXPO_PUBLIC_DESIGNS_PER_ROUND` (1–3, default 3) lowers designs per round when testing the app against the real backend | A real test round from the phone costs a third of the credits |
 | 2026-10-25 | Deploy with `vercel --prod` from the **repo root** (root linked to the same project; `.vercelignore` skips `mobile/`, `docs/`) | The Vercel project's Root Directory is `backend`, so deploying from `backend/` fails. Public URL: `https://birthday-tracker-backend.vercel.app` (per-deployment URLs are behind Vercel Authentication) |
+| 2026-10-26 | Card preview opens like a real card: the cover swings open on its left edge (Reanimated + Gesture Handler 3 hooks), showing the blank back of the cover and the message side by side. Tap/swipe, plus an Open/Close button for accessibility | User choice (a real card, not a simple flip) |
+| 2026-10-26 | Inside message font size estimated from length and page width (`domain/insideMessage.ts`), page clips as a last resort | FR-4.8 without measuring text at runtime; pure and tested |
+| 2026-10-26 | Any change to an approved card's content or selected design puts it back to draft (enforced in the repos) | The approved card is exactly what was previewed |
+| 2026-10-26 | Checkout choices travel as route params between destination and payment (not stored); payment re-validates them | No schema change; closing the app mid-checkout just restarts checkout, the card stays saved |
+| 2026-10-26 | Checkout can save the entered address to the friend or to the user's profile (toggle, on by default); sending to yourself asks for your name | FR-6.1 reuse, and the order needs a recipient name |
+| 2026-10-26 | After "Pay (demo)" the card flow is dismissed and the confirmation has no back button | A paid order can't be revisited at the payment step |
+| 2026-10-26 | Added `order/[orderId]` (read-only past order with the interactive preview); email preview is reached by card id from both confirmation and order | Order history needs a detail view; §10 layout updated |
+

@@ -55,9 +55,19 @@ export function createDesignsRepo(db: Db) {
       return (await listByCard(cardId)).filter((d) => d.generationRound === generationRound);
     },
 
-    /** Makes `designId` the card's only selected design. */
+    /**
+     * Makes `designId` the card's only selected design. Like any change to the card, this puts an
+     * approved card back to draft. Ordered cards are read-only, so this throws for them.
+     */
     async select(cardId: number, designId: number): Promise<void> {
       await db.withTransactionAsync(async () => {
+        expectOneRow(
+          await db.runAsync(
+            `UPDATE cards SET status = 'draft', updated_at = ? WHERE id = ? AND status != 'ordered'`,
+            [nowIso(), cardId],
+          ),
+          `Select a design on card ${cardId}`,
+        );
         await db.runAsync('UPDATE card_designs SET is_selected = 0 WHERE card_id = ?', [cardId]);
         const result = await db.runAsync(
           'UPDATE card_designs SET is_selected = 1 WHERE id = ? AND card_id = ?',

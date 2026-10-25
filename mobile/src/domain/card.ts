@@ -23,10 +23,15 @@ export function validateArtPrompt(prompt: string | null): string | null {
   return null;
 }
 
-export type CardStep = 'describe' | 'designs' | 'message';
+export type CardStep = 'describe' | 'designs' | 'message' | 'preview';
 
 /** Where "Resume card" lands (FR-4.1): the furthest step the draft has reached. */
-export function getResumeStep(hasDesigns: boolean, hasSelectedDesign: boolean): CardStep {
+export function getResumeStep(
+  hasDesigns: boolean,
+  hasSelectedDesign: boolean,
+  isApproved = false,
+): CardStep {
+  if (isApproved && hasSelectedDesign) return 'preview';
   if (hasSelectedDesign) return 'message';
   if (hasDesigns) return 'designs';
   return 'describe';

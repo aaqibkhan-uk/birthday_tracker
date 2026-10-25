@@ -70,14 +70,17 @@ export function createCardsRepo(db: Db) {
       return row ? toCard(row) : null;
     },
 
-    /** Saves draft content. Ordered cards are read-only (FR-6.6), so updating one throws. */
+    /**
+     * Saves draft content. Ordered cards are read-only (FR-6.6), so updating one throws.
+     * Changing an approved card puts it back to draft: it must be previewed and approved again.
+     */
     async updateContent(id: number, patch: Partial<CardContent>): Promise<Card> {
       const keys = (Object.keys(patch) as (keyof CardContent)[]).filter(
         (key) => key in CONTENT_COLUMNS,
       );
       const sets = keys.map((key) => `${CONTENT_COLUMNS[key]} = ?`);
       const result = await db.runAsync(
-        `UPDATE cards SET ${[...sets, 'updated_at = ?'].join(', ')}
+        `UPDATE cards SET ${[...sets, `status = 'draft'`, 'updated_at = ?'].join(', ')}
          WHERE id = ? AND status != 'ordered'`,
         [...keys.map((key) => patch[key] ?? null), nowIso(), id],
       );

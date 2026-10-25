@@ -184,6 +184,20 @@ describe('cardsRepo', () => {
     await expect(cardsRepo.delete(card.id)).rejects.toThrow();
   });
 
+  it('puts an approved card back to draft when its content or picture changes', async () => {
+    const { friendsRepo, cardsRepo, designsRepo } = repos;
+    const card = await cardsRepo.create((await friendsRepo.create(friendInput())).id);
+    const [first, second] = await designsRepo.addRound(card.id, 1, 'fox', ['a.png', 'b.png']);
+    await designsRepo.select(card.id, first!.id);
+
+    await cardsRepo.setStatus(card.id, 'approved');
+    expect((await cardsRepo.updateContent(card.id, { insideMessage: 'Hi' })).status).toBe('draft');
+
+    await cardsRepo.setStatus(card.id, 'approved');
+    await designsRepo.select(card.id, second!.id);
+    expect((await cardsRepo.getById(card.id))?.status).toBe('draft');
+  });
+
   it('deletes a draft with its designs', async () => {
     const { friendsRepo, cardsRepo, designsRepo } = repos;
     const card = await cardsRepo.create((await friendsRepo.create(friendInput())).id);

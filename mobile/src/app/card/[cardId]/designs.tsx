@@ -73,6 +73,8 @@ export default function DesignsScreen() {
   const loading = status.kind === 'loading';
 
   const select = async (design: CardDesign) => {
+    // Re-selecting the same design is not a change, so it must not undo an approval.
+    if (design.isSelected) return;
     await repos.designsRepo.select(id, design.id);
     reload();
   };

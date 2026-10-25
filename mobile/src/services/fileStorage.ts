@@ -7,6 +7,7 @@ import { File, Paths } from 'expo-file-system';
 import type { GeneratedImage } from './imageApi';
 
 const DESIGNS_DIR = 'designs';
+const ORDERS_DIR = 'orders';
 
 /** A URI an <Image> can display, for a path stored in the database. */
 export function resolveImageUri(path: string): string {
@@ -27,6 +28,20 @@ export async function saveDesignImage(
   file.create({ intermediates: true, overwrite: true });
   // SDK 58: write() is asynchronous; await it so the file is complete before it is used.
   await file.write(image.base64, { encoding: 'base64' });
+  return path;
+}
+
+/**
+ * Copies a design to a stable path for an order snapshot (CLAUDE.md §9), so later clean-up of
+ * the card's designs can never break the order. Returns the new relative path.
+ */
+export async function copyImageForOrder(cardId: number, designPath: string): Promise<string> {
+  const extension = designPath.split('.').pop() ?? 'jpg';
+  const path = `${ORDERS_DIR}/card-${cardId}-${Date.now()}.${extension}`;
+  const destination = new File(Paths.document, path);
+  destination.parentDirectory.create({ intermediates: true, idempotent: true });
+  // SDK 58: copy() is asynchronous, like write().
+  await new File(resolveImageUri(designPath)).copy(destination);
   return path;
 }
 
