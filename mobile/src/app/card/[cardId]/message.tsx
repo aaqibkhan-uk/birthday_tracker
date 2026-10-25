@@ -27,7 +27,7 @@ export default function MessageScreen() {
         actionLabel={card ? 'See designs' : 'Back to upcoming'}
         onAction={() =>
           card
-            ? router.navigate({ pathname: '/card/[cardId]/designs', params: { cardId } })
+            ? router.dismissTo({ pathname: '/card/[cardId]/designs', params: { cardId } })
             : router.dismissTo('/')
         }
       />
@@ -52,6 +52,14 @@ export default function MessageScreen() {
         <View style={styles.preview}>
           <CardFront imagePath={selected.imagePath} frontText={card.frontText} textSize={24} />
         </View>
+        <Button
+          label="Change picture"
+          variant="secondary"
+          // Designs is always below this screen in the stack, so this goes back to it.
+          onPress={() =>
+            router.dismissTo({ pathname: '/card/[cardId]/designs', params: { cardId } })
+          }
+        />
 
         <FormField
           label="Front text (optional)"

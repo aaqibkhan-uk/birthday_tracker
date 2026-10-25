@@ -67,7 +67,12 @@ export default function FriendDetailScreen() {
           designs.some((d) => d.isSelected),
         )
       : 'describe';
-    router.push({ pathname: `/card/[cardId]/${step}`, params: { cardId: String(target.id) } });
+    // Build the whole flow up to the resume step, so each back arrow goes one step back
+    // (message → designs → describe → friend) instead of jumping out of the card.
+    const params = { cardId: String(target.id) };
+    router.push({ pathname: '/card/[cardId]/describe', params });
+    if (step !== 'describe') router.push({ pathname: '/card/[cardId]/designs', params });
+    if (step === 'message') router.push({ pathname: '/card/[cardId]/message', params });
   };
 
   const confirmDelete = () => {

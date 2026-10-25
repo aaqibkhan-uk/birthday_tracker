@@ -77,8 +77,9 @@ export default function DesignsScreen() {
     reload();
   };
 
+  // Describe is always below this screen in the stack, so this goes back to it.
   const editDescription = () =>
-    router.navigate({ pathname: '/card/[cardId]/describe', params: { cardId } });
+    router.dismissTo({ pathname: '/card/[cardId]/describe', params: { cardId } });
 
   return (
     <View style={styles.flex}>

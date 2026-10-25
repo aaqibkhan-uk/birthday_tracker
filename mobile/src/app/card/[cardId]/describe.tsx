@@ -64,7 +64,6 @@ export default function DescribeScreen() {
           maxLength={ART_PROMPT_MAX_LENGTH}
           showCount
           multiline
-          autoFocus={!card.artPrompt}
         />
 
         <View style={styles.group}>
