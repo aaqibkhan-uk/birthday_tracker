@@ -9,10 +9,12 @@ interface Props {
   name: string;
   prompt: CardPromptData;
   now: Date;
+  actionLabel: string;
+  onAction: () => void;
 }
 
 /** FR-3.4 / FR-3.5: nudges the user to make a card, warning if it cannot arrive in time (FR-6.2). */
-export function CardPrompt({ name, prompt, now }: Props) {
+export function CardPrompt({ name, prompt, now, actionLabel, onAction }: Props) {
   const when =
     prompt.daysUntil === 0 ? 'is today' : `is ${formatDaysUntil(prompt.daysUntil).toLowerCase()}`;
   return (
@@ -27,8 +29,7 @@ export function CardPrompt({ name, prompt, now }: Props) {
           birthday. You can still send one.
         </Text>
       )}
-      {/* Card creation is built in Milestone 3. */}
-      <Button label="Create card (coming soon)" onPress={() => {}} disabled />
+      <Button label={actionLabel} onPress={onAction} />
     </View>
   );
 }

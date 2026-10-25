@@ -39,3 +39,11 @@ Running notes for the blog post. Newest entries at the bottom.
 - Permission is asked once on first launch; if it's off, a dismissible banner explains reminders won't work and links to Settings.
 - The "Create card" prompt isn't stored anywhere: the friend screen shows it from the moment the reminder was due until the birthday. The same rule covers a tapped notification and a friend added too late for this year's reminder, and it warns when a printed card couldn't arrive in time.
 - Replaced the Milestone 0 spike with a dev-only screen listing what the OS has scheduled, plus a "test tap in 10 seconds" button for checking deep links without waiting for 9am.
+
+## 2026-10-25: Milestone 3 (card creation with mock images)
+
+- Three screens: describe the picture (with optional style chips), choose a design, add your words. Every keystroke is saved straight to SQLite, so leaving halfway, or the app being killed, loses nothing; "Resume card" opens wherever you got to.
+- Generation goes through a small client that turns every failure into a plain message: timeout (60 s), no connection, rejected description, daily limit, provider error. The rule that only successful rounds count against the 3-round cap is enforced in one place, which only increments the counter once the images are on disk and in the database. Tests cover the failure cases.
+- The front text is drawn by the app over the image, never generated into it, so it is always crisp and spelled right.
+- A small iOS gotcha: the app's Documents folder path can change between installs, so absolute `file://` paths saved in the database go stale. Images are stored by path relative to the documents folder instead.
+- Added a tiny local mock server (`npm run dev:mock`) that can pretend to be slow or broken on demand, the easiest way to see the loading, timeout and error screens on a real phone without spending any credits.

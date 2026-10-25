@@ -39,6 +39,9 @@ export default function RootLayout() {
             name="friend/new"
             options={{ title: 'Add friend', presentation: 'modal' }}
           />
+          <Stack.Screen name="card/[cardId]/describe" options={{ title: 'Describe the picture' }} />
+          <Stack.Screen name="card/[cardId]/designs" options={{ title: 'Choose a design' }} />
+          <Stack.Screen name="card/[cardId]/message" options={{ title: 'Add your words' }} />
           <Stack.Screen name="dev-reminders" options={{ title: 'Scheduled reminders' }} />
         </Stack>
         {/* Rendered after the Stack so the navigator is mounted before it navigates. */}

@@ -272,7 +272,7 @@ CREATE TABLE card_designs (
   card_id           INTEGER NOT NULL REFERENCES cards(id) ON DELETE CASCADE,
   generation_round  INTEGER NOT NULL,
   prompt_used       TEXT NOT NULL,
-  image_path        TEXT NOT NULL,       -- local file URI
+  image_path        TEXT NOT NULL,       -- path relative to the app document directory
   is_selected       INTEGER NOT NULL DEFAULT 0 CHECK (is_selected IN (0, 1)),
   created_at        TEXT NOT NULL
 );
@@ -441,10 +441,10 @@ High-level plan for the week. Each milestone ends with something runnable. Updat
 
 ### Milestone 3: Card creation with mock images (Day 4)
 
-- [ ] Card flow screens: describe → designs → message
-- [ ] Draft auto-save, Resume card
-- [ ] Save selected image to file system
-- [ ] Generation cap display, loading/timeout/retry states
+- [x] Card flow screens: describe → designs → message
+- [x] Draft auto-save, Resume card
+- [x] Save selected image to file system
+- [x] Generation cap display, loading/timeout/retry states
 
 ### Milestone 4: Real generation (Day 5)
 
@@ -523,3 +523,10 @@ Record notable decisions here (date, decision, reason). Keep entries short.
 | 2026-10-25 | Birthday today, offset 0, before 09:00: the 09:00 notification is still scheduled (FR-3.3.3) and the prompt also shows | FR-3.5's "or the birthday is today" applies to the prompt; scheduling follows FR-3.3.3 and its test |
 | 2026-10-25 | Reschedules are queued in `notificationsService` so overlapping calls cannot interleave | Launch + edit at once must not leave duplicates |
 | 2026-10-25 | Spike screen replaced by a `__DEV__`-only "Scheduled reminders" screen (pending list, test tap in 10 s) | Lets reminders and tap handling be checked on the phone without waiting for 09:00 |
+| 2026-10-25 | Image paths are stored relative to the app document directory (e.g. `designs/card-3/r1-0-….png`), resolved at display time | iOS can move the app container between installs/updates, breaking absolute `file://` URIs |
+| 2026-10-25 | All designs of a draft stay on disk until the card is ordered or deleted; unselected ones are discarded at order time (Milestone 5) | Lets the user switch back to an earlier design; FR-4.11 allows discarding later. ~9 small files per card |
+| 2026-10-25 | Card auto-save writes every change straight to SQLite (no debounce) | Writes are tiny and serialised; nothing is lost if the app is killed mid-typing (FR-4.10) |
+| 2026-10-25 | "Resume card" opens the furthest step reached: message if a design is selected, else designs if any exist, else describe | FR-4.1 without storing a step |
+| 2026-10-25 | Front text is entered on the message screen with the inside message, with a live front preview | All the words in one place, after the picture is chosen |
+| 2026-10-25 | App reads the backend URL from `mobile/.env` (`EXPO_PUBLIC_API_URL`, LAN IP of `vercel dev`). Added `npm run dev:mock` in `backend/` (port 3001, always mock, `MOCK_DELAY_MS` / `MOCK_STATUS` to fake slow or failed responses) | Test loading, timeout and error states on the phone at zero cost, no Vercel login |
+| 2026-10-25 | Generation re-reads the card from SQLite before each round; the cap counter is incremented only after images are saved to disk and DB | No stale round numbers on quick re-taps; failed/rejected rounds stay free (FR-4.4, FR-4.7) |

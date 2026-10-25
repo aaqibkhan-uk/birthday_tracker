@@ -14,6 +14,8 @@ interface QueryState<T> {
  */
 export function useFocusedQuery<T>(load: () => Promise<T>): QueryState<T> & {
   reload: () => void;
+  /** Optimistically updates the loaded data (e.g. after a write) without reloading. */
+  setData: (update: (prev: T | undefined) => T | undefined) => void;
 } {
   const [state, setState] = useState<QueryState<T>>({
     data: undefined,
@@ -46,5 +48,11 @@ export function useFocusedQuery<T>(load: () => Promise<T>): QueryState<T> & {
     }, [reload]),
   );
 
-  return { ...state, reload };
+  const setData = useCallback(
+    (update: (prev: T | undefined) => T | undefined) =>
+      setState((prev) => ({ ...prev, data: update(prev.data) })),
+    [],
+  );
+
+  return { ...state, reload, setData };
 }
