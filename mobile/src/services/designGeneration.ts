@@ -40,9 +40,9 @@ export async function generateRound(
   const round = card.generationsUsed + 1;
   const paths: string[] = [];
   try {
-    result.images.forEach((image, index) => {
-      paths.push(saveDesignImage(card.id, round, index, image));
-    });
+    for (const [index, image] of result.images.entries()) {
+      paths.push(await saveDesignImage(card.id, round, index, image));
+    }
     await designsRepo.addRound(card.id, round, prompt, paths);
     await cardsRepo.incrementGenerationsUsed(card.id);
   } catch (error) {

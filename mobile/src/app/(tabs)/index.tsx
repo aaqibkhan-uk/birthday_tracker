@@ -63,7 +63,7 @@ export default function UpcomingScreen() {
               Scheduled reminders (dev)
             </Link>
           </View>
-        ) : null
+        ) : undefined
       }
     />
   );

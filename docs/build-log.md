@@ -47,3 +47,9 @@ Running notes for the blog post. Newest entries at the bottom.
 - The front text is drawn by the app over the image, never generated into it, so it is always crisp and spelled right.
 - A small iOS gotcha: the app's Documents folder path can change between installs, so absolute `file://` paths saved in the database go stale. Images are stored by path relative to the documents folder instead.
 - Added a tiny local mock server (`npm run dev:mock`) that can pretend to be slow or broken on demand, the easiest way to see the loading, timeout and error screens on a real phone without spending any credits.
+
+## 2026-10-25: Expo SDK 58 upgrade (forced by Expo Go)
+
+- Expo Go on the iPhone auto-updated to SDK 58 overnight and refused to open the SDK 57 project. On Day 1 it was the other way round, which is why we had downgraded. Lesson: Expo Go only ever runs one SDK, so the project has to follow it.
+- `npx expo install --fix` got stuck halfway on an npm peer-dependency conflict; setting every package to its SDK 58 version and reinstalling from scratch fixed it.
+- The type checker found one small break. Reading the changelogs found a more important one it missed: `File.write()` became asynchronous, so saved images weren't awaited. Worth reading the "breaking changes" sections rather than trusting a green build.

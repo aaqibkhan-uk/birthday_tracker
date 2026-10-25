@@ -7,7 +7,7 @@ import { generateImages } from './imageApi';
 
 jest.mock('./fileStorage', () => ({
   saveDesignImage: jest.fn(
-    (cardId: number, round: number, index: number) =>
+    async (cardId: number, round: number, index: number) =>
       `designs/card-${cardId}/r${round}-${index}.png`,
   ),
   deleteImages: jest.fn(),

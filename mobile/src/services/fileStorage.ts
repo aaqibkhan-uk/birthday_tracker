@@ -14,18 +14,19 @@ export function resolveImageUri(path: string): string {
 }
 
 /** Writes one generated image and returns its relative path. */
-export function saveDesignImage(
+export async function saveDesignImage(
   cardId: number,
   round: number,
   index: number,
   image: GeneratedImage,
-): string {
+): Promise<string> {
   const extension = image.mimeType === 'image/png' ? 'png' : 'jpg';
   // The timestamp keeps names unique if a round number is ever reused after a failed save.
   const path = `${DESIGNS_DIR}/card-${cardId}/r${round}-${index}-${Date.now()}.${extension}`;
   const file = new File(Paths.document, path);
   file.create({ intermediates: true, overwrite: true });
-  file.write(image.base64, { encoding: 'base64' });
+  // SDK 58: write() is asynchronous; await it so the file is complete before it is used.
+  await file.write(image.base64, { encoding: 'base64' });
   return path;
 }
 
