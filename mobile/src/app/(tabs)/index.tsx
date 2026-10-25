@@ -9,7 +9,7 @@ import { getDaysUntilBirthday } from '../../domain/birthdays';
 import { sortFriends } from '../../domain/friend';
 import { useFocusedQuery } from '../../hooks/useFocusedQuery';
 import { useRepos } from '../../hooks/useRepos';
-import { colors, fontSize, spacing } from '../../theme';
+import { colors, fonts, fontSize, spacing } from '../../theme';
 
 // FR-2.1, FR-2.2: birthdays in the next UPCOMING_WINDOW_DAYS days, soonest first, today highlighted.
 export default function UpcomingScreen() {
@@ -35,7 +35,9 @@ export default function UpcomingScreen() {
         <View style={styles.header}>
           <PermissionBanner />
           {upcoming.length > 0 ? (
-            <Text style={styles.caption}>Next {UPCOMING_WINDOW_DAYS} days</Text>
+            <Text style={styles.caption} accessibilityRole="header">
+              Next {UPCOMING_WINDOW_DAYS} days
+            </Text>
           ) : null}
         </View>
       }
@@ -46,6 +48,7 @@ export default function UpcomingScreen() {
             message="Add a friend's birthday and we'll remind you in time to send a card."
             actionLabel="Add a friend"
             onAction={() => router.push('/friend/new')}
+            icon="🎁"
           />
         ) : (
           <EmptyState
@@ -53,6 +56,7 @@ export default function UpcomingScreen() {
             message="Enjoy the quiet. All your friends' birthdays are on the Friends tab."
             actionLabel="See all friends"
             onAction={() => router.navigate('/friends')}
+            icon="☕️"
           />
         )
       }
@@ -70,10 +74,16 @@ export default function UpcomingScreen() {
 }
 
 const styles = StyleSheet.create({
-  list: { padding: spacing.md, gap: spacing.sm },
+  list: { padding: spacing.md, gap: spacing.sm + 4, paddingBottom: spacing.xl },
   grow: { flexGrow: 1 },
   header: { gap: spacing.sm },
-  caption: { fontSize: fontSize.small, color: colors.textMuted, marginBottom: spacing.xs },
+  caption: {
+    fontFamily: fonts.display,
+    fontSize: fontSize.title,
+    fontWeight: '700',
+    color: colors.textMuted,
+    marginBottom: spacing.xs,
+  },
   footer: { alignItems: 'center', padding: spacing.lg },
   devLink: { fontSize: fontSize.small, color: colors.textMuted, textDecorationLine: 'underline' },
 });

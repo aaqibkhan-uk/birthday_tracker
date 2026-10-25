@@ -26,7 +26,7 @@ import {
 import { getCardPrompt } from '../../domain/schedule';
 import { useReminders } from '../../hooks/reminders';
 import { useRepos } from '../../hooks/useRepos';
-import { colors, fontSize, spacing } from '../../theme';
+import { colors, fonts, fontSize, radius, shadow, spacing } from '../../theme';
 
 // FR-1.1, FR-1.2, FR-1.5: add a friend, or edit one when opened with ?id=.
 export default function FriendFormScreen() {
@@ -90,16 +90,18 @@ export default function FriendFormScreen() {
     >
       <Stack.Screen options={{ title: editingId === null ? 'Add friend' : 'Edit friend' }} />
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-        <FormField
-          label="Name"
-          value={form.name}
-          onChangeText={set('name')}
-          error={errors.name}
-          maxLength={NAME_MAX_LENGTH}
-          autoCapitalize="words"
-          autoFocus={editingId === null}
-          textContentType="name"
-        />
+        <View style={styles.group}>
+          <FormField
+            label="Name"
+            value={form.name}
+            onChangeText={set('name')}
+            error={errors.name}
+            maxLength={NAME_MAX_LENGTH}
+            autoCapitalize="words"
+            autoFocus={editingId === null}
+            textContentType="name"
+          />
+        </View>
 
         <View style={styles.group}>
           <Text style={styles.groupLabel}>Birthday</Text>
@@ -203,8 +205,19 @@ export default function FriendFormScreen() {
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   container: { padding: spacing.md, gap: spacing.lg, paddingBottom: spacing.xl },
-  group: { gap: spacing.sm },
-  groupLabel: { fontSize: fontSize.title, fontWeight: '600', color: colors.text },
+  group: {
+    gap: spacing.sm,
+    padding: spacing.md,
+    borderRadius: radius.md,
+    backgroundColor: colors.surface,
+    ...shadow.card,
+  },
+  groupLabel: {
+    fontFamily: fonts.display,
+    fontSize: fontSize.title,
+    fontWeight: '700',
+    color: colors.text,
+  },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   row: { flexDirection: 'row', gap: spacing.md, alignItems: 'flex-start' },
   hint: { fontSize: fontSize.small, color: colors.textMuted },

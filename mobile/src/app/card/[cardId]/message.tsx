@@ -5,8 +5,9 @@ import { CardFront } from '../../../components/CardFront';
 import { EmptyState } from '../../../components/EmptyState';
 import { FormField } from '../../../components/FormField';
 import { FRONT_TEXT_MAX_LENGTH, INSIDE_MESSAGE_MAX_LENGTH } from '../../../config';
+import { StepIndicator } from '../../../components/StepIndicator';
 import { useCardDraft } from '../../../hooks/useCardDraft';
-import { colors, fontSize, spacing } from '../../../theme';
+import { colors, fontSize, radius, shadow, spacing } from '../../../theme';
 
 // FR-4.3, FR-4.8: front text (overlaid by the app) and the inside message.
 export default function MessageScreen() {
@@ -49,6 +50,7 @@ export default function MessageScreen() {
       keyboardVerticalOffset={100}
     >
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+        <StepIndicator current={2} />
         <View style={styles.preview}>
           <CardFront imagePath={selected.imagePath} frontText={card.frontText} textSize={24} />
         </View>
@@ -97,7 +99,7 @@ export default function MessageScreen() {
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   container: { padding: spacing.md, gap: spacing.lg, paddingBottom: spacing.xl },
-  preview: { width: '60%', alignSelf: 'center' },
+  preview: { width: '60%', alignSelf: 'center', borderRadius: radius.sm, ...shadow.raised },
   saved: { fontSize: fontSize.small, color: colors.textMuted, textAlign: 'center' },
   actions: { gap: spacing.sm },
 });

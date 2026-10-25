@@ -60,6 +60,7 @@ export default function FriendsScreen() {
           message="Add the people whose birthdays you want to remember."
           actionLabel="Add a friend"
           onAction={() => router.push('/friend/new')}
+          icon="👋"
         />
       }
     />
@@ -67,7 +68,7 @@ export default function FriendsScreen() {
 }
 
 const styles = StyleSheet.create({
-  list: { padding: spacing.md, gap: spacing.sm },
+  list: { padding: spacing.md, gap: spacing.sm + 4, paddingBottom: spacing.xl },
   grow: { flexGrow: 1 },
   header: { gap: spacing.sm },
   sortRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.xs },

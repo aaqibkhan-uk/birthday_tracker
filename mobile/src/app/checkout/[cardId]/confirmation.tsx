@@ -8,7 +8,7 @@ import { OrderSummary } from '../../../components/OrderSummary';
 import { formatOrderNumber, fromIsoDate } from '../../../domain/checkout';
 import { useFocusedQuery } from '../../../hooks/useFocusedQuery';
 import { useRepos } from '../../../hooks/useRepos';
-import { colors, fontSize, spacing } from '../../../theme';
+import { colors, fonts, fontSize, radius, shadow, spacing } from '../../../theme';
 
 // FR-6.4: order confirmation. Reached with the card flow dismissed, so there is no way back.
 export default function ConfirmationScreen() {
@@ -34,6 +34,9 @@ export default function ConfirmationScreen() {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.header}>
+        <Text style={styles.confetti} importantForAccessibility="no" accessibilityElementsHidden>
+          🎉
+        </Text>
         <Text style={styles.title} accessibilityRole="header">
           Thank you!
         </Text>
@@ -69,10 +72,27 @@ export default function ConfirmationScreen() {
 
 const styles = StyleSheet.create({
   container: { padding: spacing.md, gap: spacing.lg, paddingBottom: spacing.xl },
-  header: { gap: spacing.xs, alignItems: 'center' },
-  title: { fontSize: fontSize.heading, fontWeight: '700', color: colors.text },
-  text: { fontSize: fontSize.body, color: colors.text, textAlign: 'center' },
-  number: { fontSize: fontSize.small, color: colors.textMuted },
-  thumb: { width: '35%', alignSelf: 'center' },
+  header: {
+    gap: spacing.xs,
+    alignItems: 'center',
+    padding: spacing.lg,
+    borderRadius: radius.lg,
+    backgroundColor: colors.primarySoft,
+  },
+  confetti: { fontSize: 48 },
+  title: {
+    fontFamily: fonts.display,
+    fontSize: fontSize.display,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  text: { fontSize: fontSize.body, color: colors.text, textAlign: 'center', lineHeight: 24 },
+  number: {
+    fontSize: fontSize.small,
+    fontWeight: '700',
+    color: colors.primary,
+    letterSpacing: 0.8,
+  },
+  thumb: { width: '38%', alignSelf: 'center', borderRadius: radius.sm, ...shadow.raised },
   actions: { gap: spacing.sm },
 });

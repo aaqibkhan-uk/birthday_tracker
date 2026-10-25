@@ -4,6 +4,7 @@ import { Alert, ScrollView, StyleSheet, Text, useWindowDimensions, View } from '
 import { Button } from '../../../components/Button';
 import { CardPreview } from '../../../components/CardPreview';
 import { EmptyState } from '../../../components/EmptyState';
+import { StepIndicator } from '../../../components/StepIndicator';
 import { getCardIncompleteReason } from '../../../domain/checkout';
 import { useCardDraft } from '../../../hooks/useCardDraft';
 import { useRepos } from '../../../hooks/useRepos';
@@ -56,6 +57,7 @@ export default function PreviewScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
+      <StepIndicator current={3} />
       {selected ? (
         <CardPreview
           imagePath={selected.imagePath}

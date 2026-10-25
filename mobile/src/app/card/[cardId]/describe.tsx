@@ -11,8 +11,9 @@ import {
   GENERATION_ROUNDS_PER_CARD,
 } from '../../../config';
 import { CARD_STYLES, getRemainingGenerations, validateArtPrompt } from '../../../domain/card';
+import { StepIndicator } from '../../../components/StepIndicator';
 import { useCardDraft } from '../../../hooks/useCardDraft';
-import { colors, fontSize, spacing } from '../../../theme';
+import { colors, fonts, fontSize, radius, shadow, spacing } from '../../../theme';
 
 const STYLE_LABELS: Record<(typeof CARD_STYLES)[number], string> = {
   watercolour: 'Watercolour',
@@ -59,18 +60,21 @@ export default function DescribeScreen() {
       keyboardVerticalOffset={100}
     >
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-        <FormField
-          label="What should the picture show?"
-          hint="For example: a fox reading a book under an oak tree. Words go on later, not in the picture."
-          value={card.artPrompt ?? ''}
-          onChangeText={(artPrompt) => saveContent({ artPrompt })}
-          error={submitted && promptError ? promptError : undefined}
-          maxLength={ART_PROMPT_MAX_LENGTH}
-          showCount
-          multiline
-        />
+        <StepIndicator current={0} />
+        <View style={styles.panel}>
+          <FormField
+            label="What should the picture show?"
+            hint="For example: a fox reading a book under an oak tree. Words go on later, not in the picture."
+            value={card.artPrompt ?? ''}
+            onChangeText={(artPrompt) => saveContent({ artPrompt })}
+            error={submitted && promptError ? promptError : undefined}
+            maxLength={ART_PROMPT_MAX_LENGTH}
+            showCount
+            multiline
+          />
+        </View>
 
-        <View style={styles.group}>
+        <View style={[styles.group, styles.panel]}>
           <Text style={styles.groupLabel}>Style (optional)</Text>
           <View style={styles.chips} accessibilityRole="radiogroup" accessibilityLabel="Style">
             {CARD_STYLES.map((style) => (
@@ -109,9 +113,20 @@ export default function DescribeScreen() {
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   container: { padding: spacing.md, gap: spacing.lg, paddingBottom: spacing.xl },
+  panel: {
+    padding: spacing.md,
+    borderRadius: radius.md,
+    backgroundColor: colors.surface,
+    ...shadow.card,
+  },
   group: { gap: spacing.sm },
-  groupLabel: { fontSize: fontSize.small, fontWeight: '600', color: colors.text },
+  groupLabel: {
+    fontFamily: fonts.display,
+    fontSize: fontSize.body + 1,
+    fontWeight: '700',
+    color: colors.text,
+  },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  remaining: { fontSize: fontSize.small, color: colors.textMuted },
+  remaining: { fontSize: fontSize.small, color: colors.textMuted, textAlign: 'center' },
   actions: { gap: spacing.sm },
 });

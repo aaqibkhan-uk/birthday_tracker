@@ -17,7 +17,8 @@ import { useReminders } from '../../hooks/reminders';
 import { useFocusedQuery } from '../../hooks/useFocusedQuery';
 import { useRepos } from '../../hooks/useRepos';
 import { deleteImages } from '../../services/fileStorage';
-import { colors, fontSize, radius, spacing } from '../../theme';
+import { Avatar } from '../../components/Avatar';
+import { colors, fonts, fontSize, radius, shadow, spacing } from '../../theme';
 
 export default function FriendDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -103,7 +104,8 @@ export default function FriendDetailScreen() {
       <Stack.Screen options={{ title: friend.name }} />
 
       <View style={[styles.card, days === 0 && styles.today]}>
-        <Text style={styles.when}>{days === 0 ? 'Birthday today!' : formatDaysUntil(days)}</Text>
+        <Avatar name={friend.name} size={72} />
+        <Text style={styles.when}>{days === 0 ? 'Birthday today! 🎉' : formatDaysUntil(days)}</Text>
         <Text style={styles.date}>
           {formatLongDate(next)}
           {age === null ? '' : ` · turning ${age}`}
@@ -130,14 +132,18 @@ export default function FriendDetailScreen() {
       </View>
 
       <View style={styles.actions}>
-        <Button
-          label="Edit"
-          variant="secondary"
-          onPress={() =>
-            router.push({ pathname: '/friend/new', params: { id: String(friend.id) } })
-          }
-        />
-        <Button label="Delete" variant="danger" onPress={confirmDelete} />
+        <View style={styles.flex}>
+          <Button
+            label="Edit"
+            variant="secondary"
+            onPress={() =>
+              router.push({ pathname: '/friend/new', params: { id: String(friend.id) } })
+            }
+          />
+        </View>
+        <View style={styles.flex}>
+          <Button label="Delete" variant="danger" onPress={confirmDelete} />
+        </View>
       </View>
     </ScrollView>
   );
@@ -153,21 +159,40 @@ function Detail({ label, value }: { label: string; value: string }) {
 }
 
 const styles = StyleSheet.create({
-  container: { padding: spacing.md, gap: spacing.lg },
+  container: { padding: spacing.md, gap: spacing.lg, paddingBottom: spacing.xl },
+  flex: { flex: 1 },
   card: {
     padding: spacing.lg,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
+    borderRadius: radius.lg,
     backgroundColor: colors.surface,
-    gap: spacing.xs,
+    alignItems: 'center',
+    gap: spacing.sm,
+    ...shadow.card,
   },
-  today: { backgroundColor: colors.highlight, borderColor: colors.highlightBorder, borderWidth: 2 },
-  when: { fontSize: fontSize.heading, fontWeight: '700', color: colors.text },
-  date: { fontSize: fontSize.body, color: colors.textMuted },
-  section: { gap: spacing.md },
+  today: { backgroundColor: colors.highlight, borderColor: colors.gold, borderWidth: 2 },
+  when: {
+    fontFamily: fonts.display,
+    fontSize: fontSize.display,
+    fontWeight: '700',
+    color: colors.text,
+    textAlign: 'center',
+  },
+  date: { fontSize: fontSize.body, color: colors.textMuted, textAlign: 'center' },
+  section: {
+    gap: spacing.md,
+    padding: spacing.lg,
+    borderRadius: radius.md,
+    backgroundColor: colors.surface,
+    ...shadow.card,
+  },
   detail: { gap: 2 },
-  detailLabel: { fontSize: fontSize.small, fontWeight: '600', color: colors.textMuted },
-  detailValue: { fontSize: fontSize.body, color: colors.text },
-  actions: { gap: spacing.sm },
+  detailLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.textMuted,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+  },
+  detailValue: { fontSize: fontSize.body, color: colors.text, lineHeight: 24 },
+  actions: { flexDirection: 'row', gap: spacing.sm },
 });

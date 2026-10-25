@@ -27,7 +27,7 @@ import type { Friend } from '../../../domain/friend';
 import type { DestinationType, UserProfile } from '../../../domain/models';
 import { useFocusedQuery } from '../../../hooks/useFocusedQuery';
 import { useRepos } from '../../../hooks/useRepos';
-import { colors, fontSize, radius, spacing } from '../../../theme';
+import { colors, fonts, fontSize, radius, shadow, spacing } from '../../../theme';
 
 const sameAddress = (a: AddressFormValues, b: AddressFormValues) =>
   (Object.keys(a) as (keyof AddressFormValues)[]).every((key) => a[key].trim() === b[key].trim());
@@ -225,6 +225,7 @@ function DestinationForm({ cardId, friend, profile, now }: FormProps) {
                 : `Save to ${friend?.name ?? 'their'} details`}
             </Text>
             <Switch
+              trackColor={{ true: colors.primary }}
               value={save}
               onValueChange={setSave}
               accessibilityLabel={type === 'self' ? 'Save as my address' : 'Save to their details'}
@@ -257,18 +258,29 @@ const styles = StyleSheet.create({
   container: { padding: spacing.md, gap: spacing.md, paddingBottom: spacing.xl },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   note: { fontSize: fontSize.body, color: colors.textMuted },
-  saveRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  saveLabel: { flex: 1, fontSize: fontSize.body, color: colors.text },
-  delivery: {
+  saveRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     padding: spacing.md,
     borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
+    backgroundColor: colors.surfaceAlt,
+  },
+  saveLabel: { flex: 1, fontSize: fontSize.body, color: colors.text },
+  delivery: {
+    padding: spacing.lg,
+    borderRadius: radius.md,
     backgroundColor: colors.surface,
     gap: spacing.xs,
+    ...shadow.card,
   },
   late: { borderColor: colors.error, borderWidth: 2 },
-  deliveryTitle: { fontSize: fontSize.body, fontWeight: '600', color: colors.text },
+  deliveryTitle: {
+    fontFamily: fonts.display,
+    fontSize: fontSize.body + 1,
+    fontWeight: '700',
+    color: colors.text,
+  },
   deliveryText: { fontSize: fontSize.body, color: colors.textMuted },
   warning: { fontSize: fontSize.body, color: colors.error },
 });

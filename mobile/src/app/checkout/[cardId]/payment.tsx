@@ -26,7 +26,7 @@ import { getEstimatedDelivery } from '../../../domain/delivery';
 import { useFocusedQuery } from '../../../hooks/useFocusedQuery';
 import { useRepos } from '../../../hooks/useRepos';
 import { placeOrder } from '../../../services/orderPlacement';
-import { colors, fontSize, radius, spacing } from '../../../theme';
+import { colors, fonts, fontSize, radius, shadow, spacing } from '../../../theme';
 
 type Params = {
   cardId: string;
@@ -137,7 +137,7 @@ function PaymentForm({ card, selected, destination, savedEmail, now }: FormProps
     >
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         <View style={styles.demo} accessibilityRole="summary">
-          <Text style={styles.demoTitle}>Demo mode, no real payment</Text>
+          <Text style={styles.demoTitle}>🧪 Demo mode, no real payment</Text>
           <Text style={styles.demoText}>
             This is a demo app. No card details are asked for, nothing is charged and no card is
             printed or posted.
@@ -187,11 +187,16 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     borderRadius: radius.md,
     backgroundColor: colors.highlight,
-    borderWidth: 2,
-    borderColor: colors.highlightBorder,
+    borderLeftWidth: 4,
+    borderLeftColor: colors.gold,
     gap: spacing.xs,
   },
-  demoTitle: { fontSize: fontSize.title, fontWeight: '700', color: colors.text },
-  demoText: { fontSize: fontSize.body, color: colors.text },
-  thumb: { width: '35%', alignSelf: 'center' },
+  demoTitle: {
+    fontFamily: fonts.display,
+    fontSize: fontSize.title,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  demoText: { fontSize: fontSize.body, color: colors.text, lineHeight: 23 },
+  thumb: { width: '38%', alignSelf: 'center', borderRadius: radius.sm, ...shadow.raised },
 });

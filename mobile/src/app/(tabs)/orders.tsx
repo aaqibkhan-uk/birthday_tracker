@@ -8,7 +8,7 @@ import { formatLongDate } from '../../domain/format';
 import { useFocusedQuery } from '../../hooks/useFocusedQuery';
 import { useRepos } from '../../hooks/useRepos';
 import { resolveImageUri } from '../../services/fileStorage';
-import { colors, fontSize, radius, spacing } from '../../theme';
+import { colors, fonts, fontSize, radius, shadow, spacing } from '../../theme';
 
 // FR-6.6 order history (newest first) and the FR-7.1 empty state.
 export default function OrdersScreen() {
@@ -54,6 +54,7 @@ export default function OrdersScreen() {
           message="Cards you send will appear here."
           actionLabel="See upcoming birthdays"
           onAction={() => router.navigate('/')}
+          icon="📮"
         />
       }
     />
@@ -61,21 +62,25 @@ export default function OrdersScreen() {
 }
 
 const styles = StyleSheet.create({
-  list: { padding: spacing.md, gap: spacing.sm },
+  list: { padding: spacing.md, gap: spacing.sm + 4, paddingBottom: spacing.xl },
   emptyContainer: { flexGrow: 1 },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
-    padding: spacing.sm,
+    padding: spacing.sm + 4,
     borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
     backgroundColor: colors.surface,
+    ...shadow.card,
   },
-  pressed: { opacity: 0.7 },
-  thumb: { width: 50, height: 70, borderRadius: 4, backgroundColor: colors.border },
-  body: { flex: 1, gap: 2 },
-  name: { fontSize: fontSize.body, fontWeight: '600', color: colors.text },
+  pressed: { opacity: 0.8, transform: [{ scale: 0.99 }] },
+  thumb: { width: 60, height: 84, borderRadius: 6, backgroundColor: colors.border },
+  body: { flex: 1, gap: 3 },
+  name: {
+    fontFamily: fonts.display,
+    fontSize: fontSize.title,
+    fontWeight: '700',
+    color: colors.text,
+  },
   details: { fontSize: fontSize.small, color: colors.textMuted },
 });

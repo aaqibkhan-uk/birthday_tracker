@@ -1,7 +1,7 @@
 import { router, Tabs } from 'expo-router';
 import { SymbolView, type SymbolViewProps } from 'expo-symbols';
 import { Pressable, StyleSheet, Text, type ColorValue } from 'react-native';
-import { colors, fontSize, spacing } from '../../theme';
+import { colors, fonts, fontSize, radius, spacing } from '../../theme';
 
 function tabIcon(name: SymbolViewProps['name']) {
   return function TabIcon({ color, size }: { color: ColorValue; size: number }) {
@@ -16,9 +16,9 @@ function AddFriendButton() {
       accessibilityLabel="Add friend"
       hitSlop={8}
       onPress={() => router.push('/friend/new')}
-      style={styles.headerButton}
+      style={({ pressed }) => [styles.headerButton, pressed && styles.pressed]}
     >
-      <Text style={styles.headerButtonText}>Add</Text>
+      <Text style={styles.headerButtonText}>+ Add</Text>
     </Pressable>
   );
 }
@@ -29,7 +29,18 @@ export default function TabsLayout() {
       screenOptions={{
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textMuted,
+        tabBarStyle: { backgroundColor: colors.surface, borderTopColor: colors.border },
+        tabBarLabelStyle: { fontSize: 12, fontWeight: '600' },
         sceneStyle: { backgroundColor: colors.background },
+        headerStyle: { backgroundColor: colors.background },
+        headerShadowVisible: false,
+        headerTitleAlign: 'left',
+        headerTitleStyle: {
+          fontFamily: fonts.display,
+          fontSize: fontSize.heading,
+          fontWeight: '700',
+          color: colors.text,
+        },
         headerRight: AddFriendButton,
       }}
     >
@@ -60,6 +71,13 @@ export default function TabsLayout() {
 }
 
 const styles = StyleSheet.create({
-  headerButton: { paddingHorizontal: spacing.md },
-  headerButtonText: { fontSize: fontSize.body, color: colors.primary, fontWeight: '600' },
+  headerButton: {
+    marginHorizontal: spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs + 2,
+    borderRadius: radius.pill,
+    backgroundColor: colors.primary,
+  },
+  pressed: { opacity: 0.8 },
+  headerButtonText: { fontSize: fontSize.small + 1, color: colors.primaryText, fontWeight: '700' },
 });

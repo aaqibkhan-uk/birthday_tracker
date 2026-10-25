@@ -5,7 +5,7 @@ import { EmptyState } from '../../../components/EmptyState';
 import { buildConfirmationEmail } from '../../../domain/checkout';
 import { useFocusedQuery } from '../../../hooks/useFocusedQuery';
 import { useRepos } from '../../../hooks/useRepos';
-import { colors, fontSize, radius, spacing } from '../../../theme';
+import { colors, fonts, fontSize, radius, shadow, spacing } from '../../../theme';
 
 // FR-6.5: shows exactly what the confirmation email would contain. Nothing is sent.
 export default function EmailPreviewScreen() {
@@ -39,7 +39,7 @@ export default function EmailPreviewScreen() {
           </Text>
           <Text style={styles.header}>
             <Text style={styles.headerLabel}>Subject: </Text>
-            {email.subject}
+            <Text style={styles.subject}>{email.subject}</Text>
           </Text>
         </View>
         {email.paragraphs.map((paragraph, i) => (
@@ -56,12 +56,13 @@ const styles = StyleSheet.create({
   container: { padding: spacing.md, gap: spacing.md, paddingBottom: spacing.xl },
   notice: { fontSize: fontSize.small, color: colors.textMuted, textAlign: 'center' },
   email: {
-    padding: spacing.md,
+    padding: spacing.lg,
     borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
     backgroundColor: colors.surface,
     gap: spacing.md,
+    borderTopWidth: 4,
+    borderTopColor: colors.primary,
+    ...shadow.card,
   },
   headers: {
     gap: spacing.xs,
@@ -69,7 +70,8 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderColor: colors.border,
   },
-  header: { fontSize: fontSize.body, color: colors.text },
+  header: { fontSize: fontSize.body, color: colors.text, lineHeight: 23 },
+  subject: { fontFamily: fonts.display, fontWeight: '700' },
   headerLabel: { fontWeight: '600', color: colors.textMuted },
   paragraph: { fontSize: fontSize.body, color: colors.text, lineHeight: fontSize.body * 1.4 },
 });

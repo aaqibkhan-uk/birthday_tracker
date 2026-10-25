@@ -2,7 +2,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { getEstimatedDelivery } from '../domain/delivery';
 import { formatDaysUntil, formatLongDate } from '../domain/format';
 import type { CardPrompt as CardPromptData } from '../domain/schedule';
-import { colors, fontSize, radius, spacing } from '../theme';
+import { colors, fonts, fontSize, radius, shadow, spacing } from '../theme';
 import { Button } from './Button';
 
 interface Props {
@@ -19,6 +19,9 @@ export function CardPrompt({ name, prompt, now, actionLabel, onAction }: Props) 
     prompt.daysUntil === 0 ? 'is today' : `is ${formatDaysUntil(prompt.daysUntil).toLowerCase()}`;
   return (
     <View style={styles.prompt}>
+      <Text style={styles.emoji} importantForAccessibility="no" accessibilityElementsHidden>
+        💌
+      </Text>
       <Text style={styles.title} accessibilityRole="header">
         {name}&apos;s birthday {when}
       </Text>
@@ -36,14 +39,27 @@ export function CardPrompt({ name, prompt, now, actionLabel, onAction }: Props) 
 
 const styles = StyleSheet.create({
   prompt: {
-    padding: spacing.md,
-    borderRadius: radius.md,
-    borderWidth: 2,
-    borderColor: colors.primary,
-    backgroundColor: colors.surface,
+    padding: spacing.lg,
+    borderRadius: radius.lg,
+    backgroundColor: colors.primarySoft,
     gap: spacing.sm,
+    ...shadow.card,
   },
-  title: { fontSize: fontSize.title, fontWeight: '600', color: colors.text },
-  text: { fontSize: fontSize.body, color: colors.text },
-  warning: { fontSize: fontSize.small, color: colors.error },
+  emoji: { fontSize: 32 },
+  title: {
+    fontFamily: fonts.display,
+    fontSize: fontSize.title + 2,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  text: { fontSize: fontSize.body, color: colors.text, marginBottom: spacing.xs },
+  warning: {
+    fontSize: fontSize.small,
+    color: colors.error,
+    backgroundColor: colors.surface,
+    padding: spacing.sm,
+    borderRadius: radius.sm,
+    overflow: 'hidden',
+    lineHeight: 20,
+  },
 });

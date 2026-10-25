@@ -73,3 +73,10 @@ Running notes for the blog post. Newest entries at the bottom.
 - Placing an order copies the chosen picture to its own file first, so the order is a complete snapshot that survives editing or deleting the friend. Tests cover the order of steps, including cleaning up the copy if saving fails.
 - The new linter rules (React Compiler) pushed two good habits: shared animation values use `get()`/`set()` rather than `.value`, and forms are mounted once their data has loaded instead of copying data into state in an effect.
 
+## 2026-10-26: Milestone 6 (polish, README, test checklist)
+
+- A visual pass with one rule: change how it looks, never what it does. All of it went through the theme file and a few shared components: a cream "paper" background, a deep raspberry accent, gold for birthdays, Georgia for titles and numbers (built into iOS, so nothing to download), soft shadows instead of borders.
+- Small touches that carry a lot: pastel initial avatars (the same name always gets the same colour), a countdown badge on each row that turns pink in the last week and gold on the day, emoji in the empty states, and a four-step indicator through the card flow.
+- The app is now locked to light mode. The theme only has light colours, and in dark mode iOS would have drawn white status-bar text on a cream background.
+- Wrote the README (running with the free mock, deploying your own backend) and turned the nine manual tests from the plan into a step-by-step checklist for the phone.
+

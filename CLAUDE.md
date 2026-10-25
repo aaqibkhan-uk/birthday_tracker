@@ -328,7 +328,8 @@ CREATE TABLE user_profile (
 ├── README.md
 ├── docs/
 │   ├── erd.drawio
-│   └── build-log.md          # running notes for the blog post
+│   ├── build-log.md          # running notes for the blog post
+│   └── manual-test-checklist.md
 ├── mobile/                   # Expo app
 │   └── src/
 │       ├── app/              # Expo Router screens (only routes/layouts here)
@@ -463,10 +464,10 @@ High-level plan for the week. Each milestone ends with something runnable. Updat
 
 ### Milestone 6: Test and polish (Day 7)
 
-- [ ] Run the manual test checklist (below) on a real device
-- [ ] Fix bugs, polish key screens
-- [ ] Screenshots / screen recording for the blog post
-- [ ] README with setup instructions
+- [ ] Run the manual test checklist (below) on a real device (step-by-step version: `docs/manual-test-checklist.md`)
+- [x] Polish key screens (visual only); fix any bugs the checklist finds
+- [ ] Screenshots / screen recording for the blog post (user is handling these)
+- [x] README with setup instructions
 
 ### Manual test checklist
 
@@ -547,4 +548,6 @@ Record notable decisions here (date, decision, reason). Keep entries short.
 | 2026-10-26 | Checkout can save the entered address to the friend or to the user's profile (toggle, on by default); sending to yourself asks for your name | FR-6.1 reuse, and the order needs a recipient name |
 | 2026-10-26 | After "Pay (demo)" the card flow is dismissed and the confirmation has no back button | A paid order can't be revisited at the payment step |
 | 2026-10-26 | Added `order/[orderId]` (read-only past order with the interactive preview); email preview is reached by card id from both confirmation and order | Order history needs a detail view; §10 layout updated |
+| 2026-10-26 | UI look "warm stationery": cream background, raspberry primary, gold for birthdays, serif titles (Georgia/serif, built in), rounded cards with soft shadows, initial avatars, countdown badges, card-flow step indicator. Styling only; no behaviour changes | Polish for the blog demo without new dependencies or font downloads |
+| 2026-10-26 | `userInterfaceStyle` set to `light` | The theme is light-only (§12, v0); stops iOS dark mode giving light status-bar text on cream |
 

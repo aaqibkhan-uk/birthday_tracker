@@ -10,7 +10,7 @@ import {
   configureNotifications,
   useTappedReminder,
 } from '../services/notificationsService';
-import { colors } from '../theme';
+import { colors, fonts } from '../theme';
 
 configureNotifications();
 
@@ -36,7 +36,20 @@ export default function RootLayout() {
       {/* onInit enables foreign keys and runs migrations before any screen renders. */}
       <SQLiteProvider databaseName={DATABASE_NAME} onInit={initDatabase}>
         <RemindersProvider>
-          <Stack screenOptions={{ contentStyle: { backgroundColor: colors.background } }}>
+          <Stack
+            screenOptions={{
+              contentStyle: { backgroundColor: colors.background },
+              headerStyle: { backgroundColor: colors.background },
+              headerShadowVisible: false,
+              headerTintColor: colors.primary,
+              headerTitleStyle: {
+                fontFamily: fonts.display,
+                fontWeight: '700',
+                color: colors.text,
+              },
+              headerBackButtonDisplayMode: 'minimal',
+            }}
+          >
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="friend/[id]" options={{ title: 'Friend' }} />
             <Stack.Screen

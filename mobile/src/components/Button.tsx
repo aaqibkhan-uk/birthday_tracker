@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text } from 'react-native';
-import { colors, fontSize, radius, spacing } from '../theme';
+import { colors, fontSize, radius, shadow, spacing } from '../theme';
 
 type Variant = 'primary' | 'secondary' | 'danger';
 
@@ -29,7 +29,8 @@ export function Button({
       style={({ pressed }) => [
         styles.base,
         styles[variant],
-        (pressed || disabled) && styles.dimmed,
+        disabled && styles.dimmed,
+        pressed && !disabled && styles.pressed,
       ]}
     >
       <Text
@@ -47,16 +48,17 @@ const labelColor = (variant: Variant) => ({
 
 const styles = StyleSheet.create({
   base: {
-    minHeight: 48,
+    minHeight: 52,
     paddingHorizontal: spacing.lg,
-    borderRadius: radius.md,
+    borderRadius: radius.pill,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  primary: { backgroundColor: colors.primary },
-  secondary: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.primary },
-  danger: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.danger },
-  dimmed: { opacity: 0.6 },
-  label: { fontSize: fontSize.body, fontWeight: '600' },
+  primary: { backgroundColor: colors.primary, ...shadow.raised, shadowColor: colors.primary },
+  secondary: { backgroundColor: colors.surface, borderWidth: 1.5, borderColor: colors.primarySoft },
+  danger: { backgroundColor: 'transparent', borderWidth: 1.5, borderColor: '#f1cfcc' },
+  dimmed: { opacity: 0.5, shadowOpacity: 0 },
+  pressed: { opacity: 0.85, transform: [{ scale: 0.98 }] },
+  label: { fontSize: fontSize.body, fontWeight: '700', letterSpacing: 0.2 },
   labelOnPrimary: { color: colors.primaryText },
 });

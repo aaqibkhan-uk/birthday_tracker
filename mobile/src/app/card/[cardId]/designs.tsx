@@ -7,12 +7,13 @@ import { EmptyState } from '../../../components/EmptyState';
 import { DESIGNS_PER_ROUND, GENERATION_ROUNDS_PER_CARD } from '../../../config';
 import { getRemainingGenerations } from '../../../domain/card';
 import type { CardDesign } from '../../../domain/models';
+import { StepIndicator } from '../../../components/StepIndicator';
 import { useCardDraft } from '../../../hooks/useCardDraft';
 import { useRepos } from '../../../hooks/useRepos';
 import { generateRound } from '../../../services/designGeneration';
 import { resolveImageUri } from '../../../services/fileStorage';
 import { isRetryable, type GenerationFailure } from '../../../services/imageApi';
-import { colors, fontSize, radius, spacing } from '../../../theme';
+import { colors, fontSize, radius, shadow, spacing } from '../../../theme';
 
 type Status =
   | { kind: 'idle' }
@@ -86,6 +87,7 @@ export default function DesignsScreen() {
   return (
     <View style={styles.flex}>
       <ScrollView contentContainerStyle={styles.container}>
+        <StepIndicator current={1} />
         <Text style={styles.remaining}>
           {remaining} of {GENERATION_ROUNDS_PER_CARD} rounds left
         </Text>
@@ -195,8 +197,15 @@ function groupByRound(designs: readonly CardDesign[]) {
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   container: { padding: spacing.md, gap: spacing.lg, flexGrow: 1 },
-  remaining: { fontSize: fontSize.small, color: colors.textMuted },
-  loading: { alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.xl },
+  remaining: { fontSize: fontSize.small, color: colors.textMuted, textAlign: 'center' },
+  loading: {
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.xl,
+    borderRadius: radius.md,
+    backgroundColor: colors.surface,
+    ...shadow.card,
+  },
   loadingText: { fontSize: fontSize.body, fontWeight: '600', color: colors.text },
   hint: { fontSize: fontSize.small, color: colors.textMuted },
   error: {
@@ -206,21 +215,23 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.error,
     backgroundColor: colors.surface,
+    ...shadow.card,
   },
-  errorText: { fontSize: fontSize.body, color: colors.text },
+  errorText: { fontSize: fontSize.body, fontWeight: '600', color: colors.text },
   actions: { gap: spacing.sm },
   round: { gap: spacing.sm },
-  roundLabel: { fontSize: fontSize.small, color: colors.textMuted },
+  roundLabel: { fontSize: fontSize.small, color: colors.textMuted, fontStyle: 'italic' },
   grid: { flexDirection: 'row', gap: spacing.sm },
   thumb: {
     flex: 1,
     aspectRatio: 5 / 7,
     borderRadius: radius.sm,
     borderWidth: 3,
-    borderColor: 'transparent',
+    borderColor: colors.surface,
     overflow: 'hidden',
+    backgroundColor: colors.border,
   },
-  thumbSelected: { borderColor: colors.primary },
+  thumbSelected: { borderColor: colors.primary, transform: [{ scale: 1.03 }] },
   thumbImage: { flex: 1 },
   tick: {
     position: 'absolute',
@@ -237,9 +248,11 @@ const styles = StyleSheet.create({
   footer: {
     gap: spacing.sm,
     padding: spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    backgroundColor: colors.background,
+    paddingBottom: spacing.lg,
+    borderTopLeftRadius: radius.lg,
+    borderTopRightRadius: radius.lg,
+    backgroundColor: colors.surface,
+    ...shadow.raised,
   },
   row: { flexDirection: 'row', gap: spacing.sm },
 });
