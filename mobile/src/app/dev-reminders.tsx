@@ -48,12 +48,20 @@ export default function DevRemindersScreen() {
         {data.pending.length} scheduled for {data.friends.length} friends
       </Text>
       <Button label="Reschedule now" variant="secondary" onPress={rescheduleNow} />
+      <Text style={styles.hint}>
+        Cancels everything and schedules each friend&apos;s next reminder again, as the app does on
+        launch, on returning to the foreground and after any friend change.
+      </Text>
       <Button
         label={first ? `Test tap: ${first.name} in ${TEST_DELAY_SECONDS} s` : 'Add a friend first'}
         variant="secondary"
         disabled={!first || permission !== 'granted'}
         onPress={testTap}
       />
+      <Text style={styles.hint}>
+        Sends a one-off reminder for the first friend (A–Z) to check that tapping it opens their
+        screen. The next reschedule removes it if it has not fired yet.
+      </Text>
       {message ? <Text style={styles.text}>{message}</Text> : null}
       <View style={styles.list}>
         {data.pending.map((item, index) => (
@@ -71,4 +79,5 @@ const styles = StyleSheet.create({
   container: { padding: spacing.md, gap: spacing.md },
   list: { gap: spacing.sm },
   text: { fontSize: fontSize.small, color: colors.text },
+  hint: { fontSize: fontSize.small, color: colors.textMuted, marginTop: -spacing.sm },
 });

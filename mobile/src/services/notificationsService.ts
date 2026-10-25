@@ -52,7 +52,9 @@ export async function requestPermission(): Promise<PermissionStatus> {
 
 async function scheduleAt(date: Date, title: string, body: string, data: ReminderData) {
   await Notifications.scheduleNotificationAsync({
-    content: { title, body, data },
+    // fireAt is for reading back only: iOS stores a DATE trigger as a time interval, so the
+    // OS cannot tell us the fire date later.
+    content: { title, body, data: { ...data, fireAt: date.toISOString() } },
     trigger: {
       type: Notifications.SchedulableTriggerInputTypes.DATE,
       date,
@@ -94,15 +96,13 @@ export interface PendingReminder {
 export async function getPending(): Promise<PendingReminder[]> {
   const requests = await Notifications.getAllScheduledNotificationsAsync();
   return requests
-    .map((request) => {
-      const { trigger, content } = request;
-      const value = trigger && 'value' in trigger ? trigger.value : null;
-      const date = trigger && 'date' in trigger ? trigger.date : value;
+    .map(({ content }) => {
       const friendId = content.data?.friendId;
+      const fireAt = content.data?.fireAt;
       return {
         friendId: typeof friendId === 'number' ? friendId : null,
         title: content.title ?? '',
-        fireAt: typeof date === 'number' || typeof date === 'string' ? new Date(date) : null,
+        fireAt: typeof fireAt === 'string' ? new Date(fireAt) : null,
       };
     })
     .sort((a, b) => (a.fireAt?.getTime() ?? 0) - (b.fireAt?.getTime() ?? 0));
