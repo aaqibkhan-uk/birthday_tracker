@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Button } from '../../../components/Button';
 import { EmptyState } from '../../../components/EmptyState';
-import { GENERATION_ROUNDS_PER_CARD } from '../../../config';
+import { DESIGNS_PER_ROUND, GENERATION_ROUNDS_PER_CARD } from '../../../config';
 import { getRemainingGenerations } from '../../../domain/card';
 import type { CardDesign } from '../../../domain/models';
 import { useCardDraft } from '../../../hooks/useCardDraft';
@@ -91,7 +91,9 @@ export default function DesignsScreen() {
         {loading && (
           <View style={styles.loading} accessibilityLiveRegion="polite">
             <ActivityIndicator size="large" color={colors.primary} />
-            <Text style={styles.loadingText}>Creating 3 designs…</Text>
+            <Text style={styles.loadingText}>
+              Creating {DESIGNS_PER_ROUND === 1 ? 'a design' : `${DESIGNS_PER_ROUND} designs`}…
+            </Text>
             <Text style={styles.hint}>This can take up to a minute.</Text>
           </View>
         )}

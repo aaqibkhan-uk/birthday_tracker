@@ -8,8 +8,16 @@ export const API_URL = (process.env.EXPO_PUBLIC_API_URL ?? '').replace(/\/+$/, '
 
 /** FR-4.6: generation rounds per card. One round = one request returning 3 images. */
 export const GENERATION_ROUNDS_PER_CARD = 3;
-/** FR-4.4: designs requested per round. */
-export const DESIGNS_PER_ROUND = 3;
+/**
+ * FR-4.4: designs requested per round. EXPO_PUBLIC_DESIGNS_PER_ROUND (1-3) can lower it while
+ * testing against the real backend, to spend fewer provider credits.
+ */
+export const DESIGNS_PER_ROUND = parseDesignsPerRound(process.env.EXPO_PUBLIC_DESIGNS_PER_ROUND);
+
+function parseDesignsPerRound(raw: string | undefined): number {
+  const value = Number(raw);
+  return Number.isInteger(value) && value >= 1 && value <= 3 ? value : 3;
+}
 /** FR-4.4: the app gives up on a generation request after this long. */
 export const GENERATION_TIMEOUT_MS = 60_000;
 

@@ -1,10 +1,10 @@
 // IMAGE_PROVIDERS=mock: instant placeholder images for UI development at zero cost.
 import { encodeRowPng, type Rgb } from '../png.js';
+import { CARD_IMAGE_HEIGHT, CARD_IMAGE_WIDTH } from './image.js';
 import type { GeneratedImage, ImageProvider } from './types.js';
 
-// Portrait, approx. 5:7 (CLAUDE.md §10).
-export const MOCK_WIDTH = 768;
-export const MOCK_HEIGHT = 1072;
+export const MOCK_WIDTH = CARD_IMAGE_WIDTH;
+export const MOCK_HEIGHT = CARD_IMAGE_HEIGHT;
 
 // One soft vertical gradient per option so the three designs are easy to tell apart.
 const GRADIENTS: readonly (readonly [Rgb, Rgb])[] = [

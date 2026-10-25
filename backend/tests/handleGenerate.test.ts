@@ -19,6 +19,7 @@ function post(body: unknown): Request {
 }
 
 const mockOnly = () => getProviderChain({ IMAGE_PROVIDERS: 'mock' });
+const allow = async () => true;
 
 function failing(message = 'upstream down'): ImageProvider {
   return { name: 'pollinations', generate: () => Promise.reject(new Error(message)) };
@@ -98,6 +99,7 @@ describe('handleGenerate', () => {
 
   it('falls back to the next provider when the first fails', async () => {
     const response = await handleGenerate(post({ prompt: 'a fox' }), {
+      reserveRound: allow,
       getProviders: () => [failing(), ...mockOnly()],
     });
     expect(response.status).toBe(200);
@@ -106,6 +108,7 @@ describe('handleGenerate', () => {
 
   it('falls back when a provider exceeds the timeout, even if it ignores the signal', async () => {
     const response = await handleGenerate(post({ prompt: 'a fox' }), {
+      reserveRound: allow,
       getProviders: () => [hanging, ...mockOnly()],
       providerTimeoutMs: 20,
     });
@@ -119,6 +122,7 @@ describe('handleGenerate', () => {
       generate: async () => [{ base64: 'abc', mimeType: 'image/jpeg' }],
     };
     const response = await handleGenerate(post({ prompt: 'a fox', count: 3 }), {
+      reserveRound: allow,
       getProviders: () => [short, ...mockOnly()],
     });
     expect(await response.json()).toMatchObject({ provider: 'mock' });
@@ -127,6 +131,7 @@ describe('handleGenerate', () => {
   it('returns 422 prompt_rejected without trying fallbacks when a provider filter refuses', async () => {
     const fallback = vi.fn(mockOnly()[0]!.generate);
     const response = await handleGenerate(post({ prompt: 'a fox' }), {
+      reserveRound: allow,
       getProviders: () => [
         { name: 'cloudflare', generate: () => Promise.reject(new PromptRejectedError('nsfw')) },
         { name: 'mock', generate: fallback },
@@ -139,10 +144,104 @@ describe('handleGenerate', () => {
 
   it('returns 502 provider_error when every provider fails, without logging the prompt', async () => {
     const response = await handleGenerate(post({ prompt: 'a secret fox prompt' }), {
+      reserveRound: allow,
       getProviders: () => [failing(), failing('also down')],
     });
     expect(response.status).toBe(502);
     expect(await response.json()).toMatchObject({ error: { code: 'provider_error' } });
     expect(JSON.stringify(errorSpy.mock.calls)).not.toContain('secret fox');
+  });
+
+  it('rejects blocklisted prompts with 422 before any provider or budget is used', async () => {
+    const generate = vi.fn(mockOnly()[0]!.generate);
+    const reserveRound = vi.fn(allow);
+    const response = await handleGenerate(post({ prompt: 'Mickey Mouse at a party' }), {
+      reserveRound,
+      getProviders: () => [{ name: 'cloudflare', generate }],
+    });
+    expect(response.status).toBe(422);
+    expect(await response.json()).toMatchObject({ error: { code: 'prompt_rejected' } });
+    expect(generate).not.toHaveBeenCalled();
+    expect(reserveRound).not.toHaveBeenCalled();
+  });
+
+  it('sends providers the templated prompt, not the raw description', async () => {
+    const generate = vi.fn(mockOnly()[0]!.generate);
+    await handleGenerate(post({ prompt: 'a fox reading', style: 'cartoon' }), {
+      reserveRound: allow,
+      getProviders: () => [{ name: 'cloudflare', generate }],
+    });
+    const sent = generate.mock.calls[0]![0];
+    expect(sent.prompt).toContain('Subject: a fox reading');
+    expect(sent.prompt).toContain('cartoon');
+    expect(sent.prompt).toMatch(/^Greeting card front illustration/);
+  });
+
+  it('returns 429 daily_limit_reached without calling providers when the budget is used up', async () => {
+    const generate = vi.fn(mockOnly()[0]!.generate);
+    const response = await handleGenerate(post({ prompt: 'a fox' }), {
+      reserveRound: async () => false,
+      getProviders: () => [{ name: 'cloudflare', generate }],
+    });
+    expect(response.status).toBe(429);
+    expect(await response.json()).toMatchObject({ error: { code: 'daily_limit_reached' } });
+    expect(generate).not.toHaveBeenCalled();
+  });
+
+  it('fails closed with 500 when the daily limit cannot be checked', async () => {
+    const response = await handleGenerate(post({ prompt: 'a fox' }), {
+      reserveRound: () => Promise.reject(new Error('Upstash down')),
+      getProviders: () => [{ name: 'cloudflare', generate: mockOnly()[0]!.generate }],
+    });
+    expect(response.status).toBe(500);
+    expect(await response.json()).toMatchObject({ error: { code: 'internal_error' } });
+  });
+
+  it('skips the daily limit (no Upstash needed) when only mock is configured', async () => {
+    vi.stubEnv('UPSTASH_REDIS_REST_URL', '');
+    vi.stubEnv('KV_REST_API_URL', '');
+    const response = await handleGenerate(post({ prompt: 'a fox' }), { getProviders: mockOnly });
+    expect(response.status).toBe(200);
+    vi.unstubAllEnvs();
+  });
+
+  describe('deadline', () => {
+    beforeEach(() => vi.useFakeTimers());
+    afterEach(() => vi.useRealTimers());
+
+    it('gives the fallback only the time left before the overall deadline', async () => {
+      let fallbackSignal: AbortSignal | undefined;
+      const slowFallback: ImageProvider = {
+        name: 'pollinations',
+        generate: (_request, { signal }) => {
+          fallbackSignal = signal;
+          return new Promise(() => {});
+        },
+      };
+      const pending = handleGenerate(post({ prompt: 'a fox' }), {
+        reserveRound: allow,
+        getProviders: () => [hanging, slowFallback],
+        providerTimeoutMs: 40_000,
+        deadlineMs: 55_000,
+      });
+      await vi.advanceTimersByTimeAsync(40_000);
+      expect(fallbackSignal?.aborted).toBe(false);
+      await vi.advanceTimersByTimeAsync(15_000);
+      expect(fallbackSignal?.aborted).toBe(true);
+      expect((await pending).status).toBe(502);
+    });
+
+    it('does not start a fallback with less than 5 s left', async () => {
+      const fallback = vi.fn(mockOnly()[0]!.generate);
+      const pending = handleGenerate(post({ prompt: 'a fox' }), {
+        reserveRound: allow,
+        getProviders: () => [hanging, { name: 'mock', generate: fallback }],
+        providerTimeoutMs: 40_000,
+        deadlineMs: 43_000,
+      });
+      await vi.advanceTimersByTimeAsync(40_000);
+      expect((await pending).status).toBe(502);
+      expect(fallback).not.toHaveBeenCalled();
+    });
   });
 });

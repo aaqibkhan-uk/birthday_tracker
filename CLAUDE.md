@@ -354,7 +354,7 @@ CREATE TABLE user_profile (
         ├── validation.ts     # request validation, allowed styles
         ├── errors.ts
         ├── png.ts            # tiny PNG encoder for mock placeholders
-        ├── providers/        # registry.ts (add providers here), index.ts (chain), parallel.ts, errors.ts, types.ts, mock.ts, cloudflare.ts, pollinations.ts
+        ├── providers/        # registry.ts (add providers here), index.ts (chain), parallel.ts, image.ts, errors.ts, types.ts, mock.ts, cloudflare.ts, pollinations.ts
         ├── moderation.ts
         ├── promptTemplate.ts
         └── rateLimit.ts      # Upstash daily counter
@@ -403,8 +403,8 @@ Backend rules:
 - Portrait aspect ratio approx. 5:7 (e.g. 768×1072 or nearest supported).
 - Generate the 3 images in parallel.
 - Log nothing that identifies a user. Never log full prompts in production.
-- Environment variables: `IMAGE_PROVIDERS` (ordered, comma-separated chain of `mock` | `cloudflare` | `pollinations`; default `mock`), `PROVIDER_TIMEOUT_MS` (per provider, default 25000), provider keys, `UPSTASH_*`, `DAILY_GENERATION_LIMIT`. Document them in `backend/.env.example`.
-- Provider chain: each provider gets its own timeout; on failure, timeout or an invalid response the next one is tried. A provider's own safety refusal (`PromptRejectedError`) stops the chain and returns `422`. Every provider must pass the shared contract tests (`backend/tests/providerContract.ts`).
+- Environment variables: `IMAGE_PROVIDERS` (ordered, comma-separated chain of `mock` | `cloudflare` | `pollinations`; default `mock`), `PROVIDER_TIMEOUT_MS` (per provider, default 40000), `GENERATION_DEADLINE_MS` (whole request, default 55000), provider keys, `UPSTASH_*`, `DAILY_GENERATION_LIMIT`. Document them in `backend/.env.example`.
+- Provider chain: each provider gets its own timeout, capped by the time left before the overall deadline; on failure, timeout or an invalid response the next one is tried. A provider's own safety refusal (`PromptRejectedError`) stops the chain and returns `422`. Every provider must pass the shared contract tests (`backend/tests/providerContract.ts`).
 
 ### App config
 
@@ -448,9 +448,9 @@ High-level plan for the week. Each milestone ends with something runnable. Updat
 
 ### Milestone 4: Real generation (Day 5)
 
-- [ ] Cloudflare provider (primary), Pollinations fallback (registry + chain infrastructure already in place)
-- [ ] Moderation blocklist, prompt template
-- [ ] Upstash daily limit
+- [x] Cloudflare provider (primary), Pollinations fallback (registry + chain infrastructure already in place)
+- [x] Moderation blocklist, prompt template
+- [ ] Upstash daily limit (code and tests done; Upstash database not yet created)
 - [ ] Deployed to Vercel; app pointed at deployed URL
 
 ### Milestone 5: Preview and checkout (Day 6)
@@ -506,7 +506,7 @@ Record notable decisions here (date, decision, reason). Keep entries short.
 | 2026-10-24 | Cloudflare Workers AI (`flux-2-klein-4b`) primary, Pollinations fallback (supersedes 2026-10-20 order) | Pollinations now needs a key and its free Pollen is one-off; Cloudflare's 10k Neurons/day renews daily and supports portrait sizes. Research: `docs/image-providers.md` |
 | 2026-10-24 | Provider switching via `IMAGE_PROVIDERS` chain + registry, per-provider timeout, shared contract tests | Swapping or reordering providers is config only; adding one is one file + one registry line |
 | 2026-10-24 | `DAILY_GENERATION_LIMIT` default 20 rounds | Keeps Cloudflare inside its free daily allocation with headroom |
-| 2026-10-24 | Keep `PROVIDER_TIMEOUT_MS` at 25 s for now (user decision) | **Open issue for Milestone 4:** the Cloudflare spike round took ~26.5 s (21–26 s per image), so at 25 s the primary will usually time out and fall back. Revisit when implementing the Cloudflare provider |
+| 2026-10-24 | Keep `PROVIDER_TIMEOUT_MS` at 25 s for now (user decision) | Superseded 2026-10-25 (40 s per provider, 55 s overall) |
 | 2026-10-24 | Never spend provider credits (Cloudflare Neurons, Pollinations Pollen) without the user's explicit approval per run | £0 budget, small allowances. Tests stub `fetch`; local dev uses `IMAGE_PROVIDERS=mock` |
 | 2026-10-25 | Repositories depend on a small `Db` interface (subset of expo-sqlite); tests run them on in-memory `better-sqlite3` (dev dependency, `src/db/testDb.ts`) | expo-sqlite does not run under Jest; real SQL (constraints, FKs, cascades) is still tested |
 | 2026-10-25 | Jest runs in `Europe/London` (`jest.globalSetup.js`) | Deterministic date tests that also cover the clocks changing |
@@ -531,3 +531,10 @@ Record notable decisions here (date, decision, reason). Keep entries short.
 | 2026-10-25 | App reads the backend URL from `mobile/.env` (`EXPO_PUBLIC_API_URL`, LAN IP of `vercel dev`). Added `npm run dev:mock` in `backend/` (port 3001, always mock, `MOCK_DELAY_MS` / `MOCK_STATUS` to fake slow or failed responses) | Test loading, timeout and error states on the phone at zero cost, no Vercel login |
 | 2026-10-25 | Generation re-reads the card from SQLite before each round; the cap counter is incremented only after images are saved to disk and DB | No stale round numbers on quick re-taps; failed/rejected rounds stay free (FR-4.4, FR-4.7) |
 | 2026-10-25 | Upgraded to Expo SDK 58 (React Native 0.88, React 19.3, Jest 30); supersedes the 2026-10-20 SDK 57 entry | App Store Expo Go updated to SDK 58 and no longer opens SDK 57 projects. Code change: `File.write()` is now async and is awaited |
+| 2026-10-25 | Provider timeout 40 s each, 55 s overall deadline (`GENERATION_DEADLINE_MS`); a fallback gets only the time left and is skipped under 5 s. `vercel.json` sets `maxDuration` 60 | Resolves the 25 s open issue: a ~26 s Cloudflare round fits, and the backend always answers before the app's 60 s timeout |
+| 2026-10-25 | Prompt template puts the subject in the lower two thirds, asks for a plain top third, and says books/signs/labels are blank; fixed phrase per style | Targets the spike's pseudo-lettering and crowded top third |
+| 2026-10-25 | Moderation: whole-word blocklist (case/accent-insensitive, plural "s") before the daily counter; ambiguous words that block card prompts ("frozen", "explosion", "stitch") left out | Innocent prompts must pass; provider filters are the second line |
+| 2026-10-25 | Daily budget counted per UTC day after moderation, before providers (failed rounds count); global cap only, no per-IP limit; fail closed (500) if Upstash is missing/down while a real provider is on; mock skips Upstash | Protects credits; stores nothing about users; local dev needs no Redis |
+| 2026-10-25 | Upstash via plain `fetch` to its REST API; accepts `UPSTASH_REDIS_REST_*` or the Marketplace's `KV_REST_API_*` | No extra dependency; works with either variable naming |
+| 2026-10-25 | Pollinations provider built but left out of the chain (`IMAGE_PROVIDERS=cloudflare`) until a key is added; its safety-refusal detection is unverified | No key yet; avoids spending one-off Pollen |
+| 2026-10-25 | `EXPO_PUBLIC_DESIGNS_PER_ROUND` (1–3, default 3) lowers designs per round when testing the app against the real backend | A real test round from the phone costs a third of the credits |

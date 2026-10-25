@@ -5,7 +5,11 @@ import { Button } from '../../../components/Button';
 import { Chip } from '../../../components/Chip';
 import { EmptyState } from '../../../components/EmptyState';
 import { FormField } from '../../../components/FormField';
-import { ART_PROMPT_MAX_LENGTH, GENERATION_ROUNDS_PER_CARD } from '../../../config';
+import {
+  ART_PROMPT_MAX_LENGTH,
+  DESIGNS_PER_ROUND,
+  GENERATION_ROUNDS_PER_CARD,
+} from '../../../config';
 import { CARD_STYLES, getRemainingGenerations, validateArtPrompt } from '../../../domain/card';
 import { useCardDraft } from '../../../hooks/useCardDraft';
 import { colors, fontSize, spacing } from '../../../theme';
@@ -84,7 +88,7 @@ export default function DescribeScreen() {
         <Text style={styles.remaining}>
           {remaining === 0
             ? `You've used all ${GENERATION_ROUNDS_PER_CARD} rounds of designs for this card.`
-            : `${remaining} of ${GENERATION_ROUNDS_PER_CARD} rounds of designs left. Each round makes 3 designs.`}
+            : `${remaining} of ${GENERATION_ROUNDS_PER_CARD} rounds of designs left. Each round makes ${DESIGNS_PER_ROUND} designs.`}
         </Text>
 
         <View style={styles.actions}>

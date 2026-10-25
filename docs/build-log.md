@@ -53,3 +53,12 @@ Running notes for the blog post. Newest entries at the bottom.
 - Expo Go on the iPhone auto-updated to SDK 58 overnight and refused to open the SDK 57 project. On Day 1 it was the other way round, which is why we had downgraded. Lesson: Expo Go only ever runs one SDK, so the project has to follow it.
 - `npx expo install --fix` got stuck halfway on an npm peer-dependency conflict; setting every package to its SDK 58 version and reinstalling from scratch fixed it.
 - The type checker found one small break. Reading the changelogs found a more important one it missed: `File.write()` became asynchronous, so saved images weren't awaited. Worth reading the "breaking changes" sections rather than trusting a green build.
+
+## 2026-10-25: Milestone 4 (real image generation, code)
+
+- Resolved the timeout question from the spike: a Cloudflare round takes about 26 s, so each provider now gets up to 40 s, but the whole request has a 55 s deadline. A fallback only gets whatever time is left, so the app (which gives up at 60 s) always gets an answer, even a "please try again".
+- The prompt template now tackles both spike problems head on: the subject goes in the lower two thirds, the top third is plain background for the front text, and books, signs and labels are explicitly blank.
+- Moderation is a whole-word blocklist (sexual content, violence, hate, real people, brands, characters). Whole words matter: "grape" and "Scunthorpe" must pass. A few obvious candidates were dropped because they would block perfectly good cards: "frozen lake", "an explosion of colour", "cross stitch".
+- The daily budget lives in Upstash, one counter per UTC day (when Cloudflare's free allowance resets). It is counted before calling the provider, because a failed round may still have cost credits, and it fails closed: if the counter can't be checked, nothing is generated.
+- Cloudflare and Pollinations providers are written and tested with `fetch` stubbed, so no credits were spent writing them.
+

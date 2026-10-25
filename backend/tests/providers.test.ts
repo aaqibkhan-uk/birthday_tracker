@@ -35,9 +35,19 @@ describe('getProviderChain', () => {
     expect(getProviderChain({ IMAGE_PROVIDERS: 'mock' }).map((p) => p.name)).toEqual(['mock']);
   });
 
-  it('fails fast for providers that are not implemented yet', () => {
-    expect(() => getProviderChain({ IMAGE_PROVIDERS: 'cloudflare,mock' })).toThrow(
-      /not implemented/,
+  it('builds cloudflare and pollinations in order when their keys are set', () => {
+    const chain = getProviderChain({
+      IMAGE_PROVIDERS: 'cloudflare,pollinations',
+      CLOUDFLARE_ACCOUNT_ID: 'acc',
+      CLOUDFLARE_API_TOKEN: 'token',
+      POLLINATIONS_API_KEY: 'sk_test',
+    });
+    expect(chain.map((p) => p.name)).toEqual(['cloudflare', 'pollinations']);
+  });
+
+  it('fails fast when a configured provider is missing its key', () => {
+    expect(() => getProviderChain({ IMAGE_PROVIDERS: 'cloudflare,pollinations' })).toThrow(
+      ProviderConfigError,
     );
   });
 });
