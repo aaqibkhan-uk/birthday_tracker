@@ -6,7 +6,7 @@ import { Button } from '../components/Button';
 import { useFocusedQuery } from '../hooks/useFocusedQuery';
 import { useReminders } from '../hooks/reminders';
 import { useRepos } from '../hooks/useRepos';
-import { getPending, scheduleTestReminder } from '../services/notificationsService';
+import { getDebugEvents, getPending, scheduleTestReminder } from '../services/notificationsService';
 import { colors, fontSize, spacing } from '../theme';
 
 const TEST_DELAY_SECONDS = 10;
@@ -60,14 +60,24 @@ export default function DevRemindersScreen() {
       />
       <Text style={styles.hint}>
         Sends a one-off reminder for the first friend (A–Z) to check that tapping it opens their
-        screen. The next reschedule removes it if it has not fired yet.
+        screen. Reschedules leave it in place.
       </Text>
       {message ? <Text style={styles.text}>{message}</Text> : null}
+      <Text style={styles.heading}>Pending</Text>
       <View style={styles.list}>
         {data.pending.map((item, index) => (
           <Text key={index} style={styles.text}>
             {item.fireAt?.toLocaleString() ?? '?'} · {names.get(item.friendId ?? -1) ?? '?'} ·{' '}
             {item.title}
+          </Text>
+        ))}
+      </View>
+      <Text style={styles.heading}>Event log (newest first)</Text>
+      <Button label="Refresh" variant="secondary" onPress={reload} />
+      <View style={styles.list}>
+        {getDebugEvents().map((event, index) => (
+          <Text key={index} style={styles.text}>
+            {event}
           </Text>
         ))}
       </View>
@@ -79,5 +89,6 @@ const styles = StyleSheet.create({
   container: { padding: spacing.md, gap: spacing.md },
   list: { gap: spacing.sm },
   text: { fontSize: fontSize.small, color: colors.text },
+  heading: { fontSize: fontSize.body, fontWeight: '600', color: colors.text },
   hint: { fontSize: fontSize.small, color: colors.textMuted, marginTop: -spacing.sm },
 });

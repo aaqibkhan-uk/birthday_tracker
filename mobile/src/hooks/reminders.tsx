@@ -10,6 +10,7 @@ import {
 import { AppState, Linking } from 'react-native';
 import {
   getPermissionStatus,
+  logDebugEvent,
   requestPermission,
   rescheduleAll,
   type PermissionStatus,
@@ -67,6 +68,7 @@ export function RemindersProvider({ children }: { children: ReactNode }) {
       await refresh();
     })();
     const subscription = AppState.addEventListener('change', (state) => {
+      logDebugEvent(`app state: ${state}`);
       if (state === 'active') void refresh();
     });
     return () => {

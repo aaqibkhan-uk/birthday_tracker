@@ -5,6 +5,17 @@ import type { ReminderFriend } from '../domain/schedule';
 import { buildSchedule } from '../domain/schedule';
 
 const ANDROID_CHANNEL_ID = 'reminders';
+/** Dev test notifications use this identifier prefix so reschedules leave them alone. */
+const TEST_ID_PREFIX = 'test-';
+
+// DEV aid: a short in-memory log of scheduling events, shown on the dev reminders screen.
+const debugEvents: string[] = [];
+export function logDebugEvent(message: string): void {
+  if (!__DEV__) return;
+  debugEvents.unshift(`${new Date().toLocaleTimeString()} ${message}`);
+  debugEvents.length = Math.min(debugEvents.length, 30);
+}
+export const getDebugEvents = (): readonly string[] => debugEvents;
 
 export type PermissionStatus = 'granted' | 'denied' | 'undetermined';
 
@@ -50,8 +61,15 @@ export async function requestPermission(): Promise<PermissionStatus> {
   );
 }
 
-async function scheduleAt(date: Date, title: string, body: string, data: ReminderData) {
+async function scheduleAt(
+  identifier: string,
+  date: Date,
+  title: string,
+  body: string,
+  data: ReminderData,
+) {
   await Notifications.scheduleNotificationAsync({
+    identifier,
     // fireAt is for reading back only: iOS stores a DATE trigger as a time interval, so the
     // OS cannot tell us the fire date later.
     content: { title, body, data: { ...data, fireAt: date.toISOString() } },
@@ -73,13 +91,24 @@ let queue: Promise<unknown> = Promise.resolve();
 export function rescheduleAll(friends: readonly ReminderFriend[]): Promise<void> {
   const run = async () => {
     if ((await getPermissionStatus()) !== 'granted') return;
-    await Notifications.cancelAllScheduledNotificationsAsync();
-    // `now` is taken inside the queued task so a delayed run never schedules a past moment.
-    for (const reminder of buildSchedule(friends, new Date())) {
-      await scheduleAt(reminder.fireAt, reminder.title, reminder.body, {
-        friendId: reminder.friendId,
-      });
+    // Cancel everything this app scheduled except dev test notifications.
+    const pending = await Notifications.getAllScheduledNotificationsAsync();
+    const toCancel = pending.filter((request) => !request.identifier.startsWith(TEST_ID_PREFIX));
+    for (const request of toCancel) {
+      await Notifications.cancelScheduledNotificationAsync(request.identifier);
     }
+    // `now` is taken inside the queued task so a delayed run never schedules a past moment.
+    const schedule = buildSchedule(friends, new Date());
+    for (const reminder of schedule) {
+      await scheduleAt(
+        `reminder-${reminder.friendId}`,
+        reminder.fireAt,
+        reminder.title,
+        reminder.body,
+        { friendId: reminder.friendId },
+      );
+    }
+    logDebugEvent(`rescheduled: cancelled ${toCancel.length}, scheduled ${schedule.length}`);
   };
   const next = queue.then(run, run);
   queue = next.catch(() => undefined);
@@ -110,8 +139,11 @@ export async function getPending(): Promise<PendingReminder[]> {
 
 /** Dev only: a reminder for one friend a few seconds from now, to test tap handling. */
 export async function scheduleTestReminder(friend: ReminderFriend, secondsAhead: number) {
+  const fireAt = new Date(Date.now() + secondsAhead * 1000);
+  logDebugEvent(`test scheduled for ${fireAt.toLocaleTimeString()}`);
   await scheduleAt(
-    new Date(Date.now() + secondsAhead * 1000),
+    `${TEST_ID_PREFIX}${fireAt.getTime()}`,
+    fireAt,
     `Test: ${friend.name}'s birthday reminder`,
     'Tap to open their screen.',
     { friendId: friend.id },
