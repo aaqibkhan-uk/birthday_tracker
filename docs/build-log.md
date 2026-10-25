@@ -61,4 +61,6 @@ Running notes for the blog post. Newest entries at the bottom.
 - Moderation is a whole-word blocklist (sexual content, violence, hate, real people, brands, characters). Whole words matter: "grape" and "Scunthorpe" must pass. A few obvious candidates were dropped because they would block perfectly good cards: "frozen lake", "an explosion of colour", "cross stitch".
 - The daily budget lives in Upstash, one counter per UTC day (when Cloudflare's free allowance resets). It is counted before calling the provider, because a failed round may still have cost credits, and it fails closed: if the counter can't be checked, nothing is generated.
 - Cloudflare and Pollinations providers are written and tested with `fetch` stubbed, so no credits were spent writing them.
+- Deployed to Vercel with Upstash attached from the Marketplace. First snag: the project's Root Directory is `backend`, so deploying from inside `backend/` looked for `backend/backend`. Deploying from the repo root fixed it.
+- First real round through the deployed backend (1 image, to save credits): 14 s, 768×1072 JPEG. The new template worked: the top third is plain sky, and the fox's book cover is blank.
 

@@ -450,8 +450,8 @@ High-level plan for the week. Each milestone ends with something runnable. Updat
 
 - [x] Cloudflare provider (primary), Pollinations fallback (registry + chain infrastructure already in place)
 - [x] Moderation blocklist, prompt template
-- [ ] Upstash daily limit (code and tests done; Upstash database not yet created)
-- [ ] Deployed to Vercel; app pointed at deployed URL
+- [x] Upstash daily limit
+- [x] Deployed to Vercel (`https://birthday-tracker-backend.vercel.app`); app pointed at deployed URL
 
 ### Milestone 5: Preview and checkout (Day 6)
 
@@ -538,3 +538,4 @@ Record notable decisions here (date, decision, reason). Keep entries short.
 | 2026-10-25 | Upstash via plain `fetch` to its REST API; accepts `UPSTASH_REDIS_REST_*` or the Marketplace's `KV_REST_API_*` | No extra dependency; works with either variable naming |
 | 2026-10-25 | Pollinations provider built but left out of the chain (`IMAGE_PROVIDERS=cloudflare`) until a key is added; its safety-refusal detection is unverified | No key yet; avoids spending one-off Pollen |
 | 2026-10-25 | `EXPO_PUBLIC_DESIGNS_PER_ROUND` (1–3, default 3) lowers designs per round when testing the app against the real backend | A real test round from the phone costs a third of the credits |
+| 2026-10-25 | Deploy with `vercel --prod` from the **repo root** (root linked to the same project; `.vercelignore` skips `mobile/`, `docs/`) | The Vercel project's Root Directory is `backend`, so deploying from `backend/` fails. Public URL: `https://birthday-tracker-backend.vercel.app` (per-deployment URLs are behind Vercel Authentication) |
