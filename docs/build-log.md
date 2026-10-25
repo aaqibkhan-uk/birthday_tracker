@@ -22,3 +22,11 @@ Running notes for the blog post. Newest entries at the bottom.
   - The tree canopy filled the top third, where the front text should go.
 - Speed: 21–26 s per image (about 26.5 s for a round of three, in parallel). That is right at the 25 s per-provider timeout, so this is an open question for Milestone 4.
 - Ground rule agreed: no real provider calls without explicit approval, to protect the free allowance.
+
+## 2026-10-25: Day 2, Milestone 1 (data and friends)
+
+- SQLite schema from the ERD as migration 1, versioned with `PRAGMA user_version`; each migration runs in a transaction with its version bump, so a failed migration leaves the database untouched. Foreign keys are switched on per connection.
+- Five repositories (friends, cards, designs, orders, profile). They talk to a tiny `Db` interface rather than expo-sqlite directly, so Jest runs them against a real in-memory SQLite (`better-sqlite3`). That caught the details that matter: deleting a friend removes their drafts but keeps ordered cards with no friend attached, one order per card, ordered cards are read-only.
+- Date logic as pure functions with 86 tests, run in the Europe/London timezone so they cover the clocks changing. The year-boundary example from the spec (3 Jan birthday, 2-week reminder, checked on 25 Dec) needs two year jumps, and passes.
+- Delivery estimate written now too, since it is pure and small.
+- Screens: Upcoming (next 30 days, today highlighted, age turning), Friends (A–Z or next birthday), Orders (empty state for now), friend detail, and one add/edit form. Months are tap-to-pick chips rather than a date picker, which removes a whole class of invalid input; the day is still validated (no 31 April, 29 Feb only in leap years if a year is given).

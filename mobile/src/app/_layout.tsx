@@ -1,6 +1,9 @@
 import * as Notifications from 'expo-notifications';
 import { router, Stack } from 'expo-router';
+import { SQLiteProvider } from 'expo-sqlite';
 import { useEffect } from 'react';
+import { DATABASE_NAME, initDatabase } from '../db/database';
+import { colors } from '../theme';
 
 // TEMPORARY (Milestone 0 spike): moves into notificationsService in Milestone 2.
 // Without a handler, notifications that arrive while the app is open are not shown.
@@ -31,9 +34,14 @@ export default function RootLayout() {
   }, [lastResponse]);
 
   return (
-    <Stack>
-      <Stack.Screen name="index" options={{ title: 'Birthday Cards' }} />
-      <Stack.Screen name="dev-notifications" options={{ title: 'Notification spike' }} />
-    </Stack>
+    // onInit enables foreign keys and runs migrations before any screen renders.
+    <SQLiteProvider databaseName={DATABASE_NAME} onInit={initDatabase}>
+      <Stack screenOptions={{ contentStyle: { backgroundColor: colors.background } }}>
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="friend/[id]" options={{ title: 'Friend' }} />
+        <Stack.Screen name="friend/new" options={{ title: 'Add friend', presentation: 'modal' }} />
+        <Stack.Screen name="dev-notifications" options={{ title: 'Notification spike' }} />
+      </Stack>
+    </SQLiteProvider>
   );
 }

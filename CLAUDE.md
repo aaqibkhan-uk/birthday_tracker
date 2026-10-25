@@ -341,7 +341,7 @@ CREATE TABLE user_profile (
 │       │   ├── card/[cardId]/    # describe, designs, message, preview
 │       │   └── checkout/[cardId]/ # destination, payment, confirmation, email-preview
 │       ├── domain/           # pure logic + tests (dates, schedule, delivery)
-│       ├── db/               # connection, migrations, repositories
+│       ├── db/               # database.ts (Db interface, init), migrations.ts, repositories/, testDb.ts (tests only)
 │       ├── services/         # notifications, image API client, file storage
 │       ├── components/       # shared UI (CardPreview, Banner, EmptyState…)
 │       ├── hooks/
@@ -426,11 +426,11 @@ High-level plan for the week. Each milestone ends with something runnable. Updat
 
 ### Milestone 1: Data and friends (Day 2)
 
-- [ ] SQLite connection, migrations, repositories
-- [ ] Domain date functions + unit tests (section 8)
-- [ ] Add/edit/delete friend with validation
-- [ ] Friends list (sort toggle) and Upcoming list with days remaining, today highlighted
-- [ ] Empty states
+- [x] SQLite connection, migrations, repositories
+- [x] Domain date functions + unit tests (section 8)
+- [x] Add/edit/delete friend with validation
+- [x] Friends list (sort toggle) and Upcoming list with days remaining, today highlighted
+- [x] Empty states (friends, upcoming, orders)
 
 ### Milestone 2: Notifications (Day 3)
 
@@ -508,3 +508,12 @@ Record notable decisions here (date, decision, reason). Keep entries short.
 | 2026-10-24 | `DAILY_GENERATION_LIMIT` default 20 rounds | Keeps Cloudflare inside its free daily allocation with headroom |
 | 2026-10-24 | Keep `PROVIDER_TIMEOUT_MS` at 25 s for now (user decision) | **Open issue for Milestone 4:** the Cloudflare spike round took ~26.5 s (21–26 s per image), so at 25 s the primary will usually time out and fall back. Revisit when implementing the Cloudflare provider |
 | 2026-10-24 | Never spend provider credits (Cloudflare Neurons, Pollinations Pollen) without the user's explicit approval per run | £0 budget, small allowances. Tests stub `fetch`; local dev uses `IMAGE_PROVIDERS=mock` |
+| 2026-10-25 | Repositories depend on a small `Db` interface (subset of expo-sqlite); tests run them on in-memory `better-sqlite3` (dev dependency, `src/db/testDb.ts`) | expo-sqlite does not run under Jest; real SQL (constraints, FKs, cascades) is still tested |
+| 2026-10-25 | Jest runs in `Europe/London` (`jest.globalSetup.js`) | Deterministic date tests that also cover the clocks changing |
+| 2026-10-25 | Delivery functions built in Milestone 1 with the other §8 functions; `buildSchedule` stays in Milestone 2 | Pure and small; `buildSchedule` belongs with the notifications service |
+| 2026-10-25 | Upcoming tab shows the next 30 days (`UPCOMING_WINDOW_DAYS` in `config.ts`); all birthdays are on the Friends tab | Gives FR-7.1 a meaningful "no upcoming birthdays" state, separate from "no friends" |
+| 2026-10-25 | Friend address is all-or-nothing: any field filled → line 1, city and a valid UK postcode required; postcode normalised (`SW1A 1AA`) | A saved address must be usable at checkout (FR-6.1) |
+| 2026-10-25 | Birth year optional, 1900–current year; 29 Feb rejected if the known year is not a leap year; birthday can't be in the future | Extends FR-1.5 to the optional year |
+| 2026-10-25 | Repo deletes return the deleted designs' image paths; the caller deletes files (wired in Milestone 3) | Keeps repositories free of file-system code |
+| 2026-10-25 | Ordered cards are read-only in the repo layer (`WHERE status != 'ordered'`); `ordersRepo.create` marks the card ordered in the same transaction | Enforces FR-6.6 below the UI |
+| 2026-10-25 | Tabs use Expo Router's JS `Tabs` with `expo-symbols` icons; add/edit friend is one modal route (`friend/new?id=`) | JS tabs give headers (for the Add button) with no extra stacks; matches §10 layout |
