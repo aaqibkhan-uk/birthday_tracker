@@ -23,6 +23,8 @@ import {
   type FriendFormErrors,
   type FriendFormValues,
 } from '../../domain/friend';
+import { getCardPrompt } from '../../domain/schedule';
+import { useReminders } from '../../hooks/reminders';
 import { useRepos } from '../../hooks/useRepos';
 import { colors, fontSize, spacing } from '../../theme';
 
@@ -31,6 +33,7 @@ export default function FriendFormScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const editingId = id ? Number(id) : null;
   const { friendsRepo } = useRepos();
+  const { reschedule } = useReminders();
 
   const [form, setForm] = useState<FriendFormValues>(emptyFriendForm);
   const [loaded, setLoaded] = useState(editingId === null);
@@ -59,9 +62,18 @@ export default function FriendFormScreen() {
     if (!validation.ok || saving) return;
     setSaving(true);
     try {
-      if (editingId === null) await friendsRepo.create(validation.value);
-      else await friendsRepo.update(editingId, validation.value);
-      router.back();
+      const friend =
+        editingId === null
+          ? await friendsRepo.create(validation.value)
+          : await friendsRepo.update(editingId, validation.value);
+      void reschedule();
+      // FR-3.5: a new friend whose reminder has already passed goes straight to their screen,
+      // which shows the "Create card" prompt. An edit returns to that screen anyway.
+      if (editingId === null && getCardPrompt(friend, new Date())) {
+        router.replace({ pathname: '/friend/[id]', params: { id: String(friend.id) } });
+      } else {
+        router.back();
+      }
     } catch {
       setSaving(false);
       Alert.alert('Could not save', 'Something went wrong saving this friend. Please try again.');

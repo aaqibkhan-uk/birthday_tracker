@@ -434,10 +434,10 @@ High-level plan for the week. Each milestone ends with something runnable. Updat
 
 ### Milestone 2: Notifications (Day 3)
 
-- [ ] Permission request + denied banner
-- [ ] `buildSchedule` + tests; notifications service (cancel all, schedule all)
-- [ ] Reschedule on launch and on friend changes
-- [ ] Notification tap → friend screen; late-addition prompt (FR-3.5)
+- [x] Permission request + denied banner
+- [x] `buildSchedule` + tests; notifications service (cancel all, schedule all)
+- [x] Reschedule on launch and on friend changes
+- [x] Notification tap → friend screen; late-addition prompt (FR-3.5)
 
 ### Milestone 3: Card creation with mock images (Day 4)
 
@@ -517,3 +517,9 @@ Record notable decisions here (date, decision, reason). Keep entries short.
 | 2026-10-25 | Repo deletes return the deleted designs' image paths; the caller deletes files (wired in Milestone 3) | Keeps repositories free of file-system code |
 | 2026-10-25 | Ordered cards are read-only in the repo layer (`WHERE status != 'ordered'`); `ordersRepo.create` marks the card ordered in the same transaction | Enforces FR-6.6 below the UI |
 | 2026-10-25 | Tabs use Expo Router's JS `Tabs` with `expo-symbols` icons; add/edit friend is one modal route (`friend/new?id=`) | JS tabs give headers (for the Add button) with no extra stacks; matches §10 layout |
+| 2026-10-25 | Reminders are also rescheduled whenever the app returns to the foreground | Covers manual test 5 (timezone change + reopen) and permission turned on in Settings |
+| 2026-10-25 | Permission banner dismissal lasts for the session; it returns on the next launch while notifications are off | Reads "persistent, dismissible" (FR-3.1) without a schema change |
+| 2026-10-25 | "Create card" prompt is derived (`getCardPrompt`): shown from the reminder moment until the birthday, and on the day. A tapped notification just opens the friend screen. Button disabled until Milestone 3 | One rule covers FR-3.4 and FR-3.5, nothing stored |
+| 2026-10-25 | Birthday today, offset 0, before 09:00: the 09:00 notification is still scheduled (FR-3.3.3) and the prompt also shows | FR-3.5's "or the birthday is today" applies to the prompt; scheduling follows FR-3.3.3 and its test |
+| 2026-10-25 | Reschedules are queued in `notificationsService` so overlapping calls cannot interleave | Launch + edit at once must not leave duplicates |
+| 2026-10-25 | Spike screen replaced by a `__DEV__`-only "Scheduled reminders" screen (pending list, test tap in 10 s) | Lets reminders and tap handling be checked on the phone without waiting for 09:00 |

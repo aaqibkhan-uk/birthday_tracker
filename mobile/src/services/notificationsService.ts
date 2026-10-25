@@ -1,0 +1,140 @@
+// The only module that touches expo-notifications (CLAUDE.md §8). Local notifications only.
+import * as Notifications from 'expo-notifications';
+import { Platform } from 'react-native';
+import type { ReminderFriend } from '../domain/schedule';
+import { buildSchedule } from '../domain/schedule';
+
+const ANDROID_CHANNEL_ID = 'reminders';
+
+export type PermissionStatus = 'granted' | 'denied' | 'undetermined';
+
+/** Data attached to every reminder, read back when the user taps it (FR-3.4). */
+export interface ReminderData extends Record<string, unknown> {
+  friendId: number;
+}
+
+/** Call once at startup, before anything is scheduled. */
+export function configureNotifications(): void {
+  // Without a handler, notifications that arrive while the app is open are not shown.
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowBanner: true,
+      shouldShowList: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+    }),
+  });
+  if (Platform.OS === 'android') {
+    // Android 13+ only shows the permission prompt once a channel exists.
+    void Notifications.setNotificationChannelAsync(ANDROID_CHANNEL_ID, {
+      name: 'Birthday reminders',
+      importance: Notifications.AndroidImportance.HIGH,
+    });
+  }
+}
+
+function toStatus(response: Notifications.NotificationPermissionsStatus): PermissionStatus {
+  if (response.granted) return 'granted';
+  return response.canAskAgain ? 'undetermined' : 'denied';
+}
+
+export async function getPermissionStatus(): Promise<PermissionStatus> {
+  return toStatus(await Notifications.getPermissionsAsync());
+}
+
+export async function requestPermission(): Promise<PermissionStatus> {
+  return toStatus(
+    await Notifications.requestPermissionsAsync({
+      ios: { allowAlert: true, allowBadge: false, allowSound: true },
+    }),
+  );
+}
+
+async function scheduleAt(date: Date, title: string, body: string, data: ReminderData) {
+  await Notifications.scheduleNotificationAsync({
+    content: { title, body, data },
+    trigger: {
+      type: Notifications.SchedulableTriggerInputTypes.DATE,
+      date,
+      channelId: ANDROID_CHANNEL_ID,
+    },
+  });
+}
+
+let queue: Promise<unknown> = Promise.resolve();
+
+/**
+ * Cancels every scheduled notification and schedules exactly one per friend: their next
+ * reminder (FR-3.3.2). Calls are queued so overlapping reschedules (launch + an edit) cannot
+ * interleave and leave duplicates. Does nothing without permission.
+ */
+export function rescheduleAll(friends: readonly ReminderFriend[]): Promise<void> {
+  const run = async () => {
+    if ((await getPermissionStatus()) !== 'granted') return;
+    await Notifications.cancelAllScheduledNotificationsAsync();
+    // `now` is taken inside the queued task so a delayed run never schedules a past moment.
+    for (const reminder of buildSchedule(friends, new Date())) {
+      await scheduleAt(reminder.fireAt, reminder.title, reminder.body, {
+        friendId: reminder.friendId,
+      });
+    }
+  };
+  const next = queue.then(run, run);
+  queue = next.catch(() => undefined);
+  return next;
+}
+
+export interface PendingReminder {
+  friendId: number | null;
+  title: string;
+  fireAt: Date | null;
+}
+
+/** Scheduled notifications as the OS reports them, soonest first. Used by the dev screen. */
+export async function getPending(): Promise<PendingReminder[]> {
+  const requests = await Notifications.getAllScheduledNotificationsAsync();
+  return requests
+    .map((request) => {
+      const { trigger, content } = request;
+      const value = trigger && 'value' in trigger ? trigger.value : null;
+      const date = trigger && 'date' in trigger ? trigger.date : value;
+      const friendId = content.data?.friendId;
+      return {
+        friendId: typeof friendId === 'number' ? friendId : null,
+        title: content.title ?? '',
+        fireAt: typeof date === 'number' || typeof date === 'string' ? new Date(date) : null,
+      };
+    })
+    .sort((a, b) => (a.fireAt?.getTime() ?? 0) - (b.fireAt?.getTime() ?? 0));
+}
+
+/** Dev only: a reminder for one friend a few seconds from now, to test tap handling. */
+export async function scheduleTestReminder(friend: ReminderFriend, secondsAhead: number) {
+  await scheduleAt(
+    new Date(Date.now() + secondsAhead * 1000),
+    `Test: ${friend.name}'s birthday reminder`,
+    'Tap to open their screen.',
+    { friendId: friend.id },
+  );
+}
+
+export interface TappedReminder {
+  /** Unique per delivered notification, so the same tap is handled once. */
+  key: string;
+  friendId: number;
+}
+
+/** Subscribes to notification taps, including the one that cold-started the app. */
+export function useTappedReminder(): TappedReminder | null {
+  const response = Notifications.useLastNotificationResponse();
+  if (!response || response.actionIdentifier !== Notifications.DEFAULT_ACTION_IDENTIFIER) {
+    return null;
+  }
+  const { request, date } = response.notification;
+  const friendId = request.content.data?.friendId;
+  return typeof friendId === 'number' ? { key: `${request.identifier}:${date}`, friendId } : null;
+}
+
+export function clearTappedReminder(): void {
+  void Notifications.clearLastNotificationResponseAsync();
+}

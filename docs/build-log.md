@@ -30,3 +30,12 @@ Running notes for the blog post. Newest entries at the bottom.
 - Date logic as pure functions with 86 tests, run in the Europe/London timezone so they cover the clocks changing. The year-boundary example from the spec (3 Jan birthday, 2-week reminder, checked on 25 Dec) needs two year jumps, and passes.
 - Delivery estimate written now too, since it is pure and small.
 - Screens: Upcoming (next 30 days, today highlighted, age turning), Friends (A–Z or next birthday), Orders (empty state for now), friend detail, and one add/edit form. Months are tap-to-pick chips rather than a date picker, which removes a whole class of invalid input; the day is still validated (no 31 April, 29 Feb only in leap years if a year is given).
+
+## 2026-10-25: Milestone 2 (notifications)
+
+- `buildSchedule` is a pure function: one next reminder per friend, soonest first, capped at iOS's 64 pending notifications. A thin `notificationsService` cancels everything and schedules that list; it is the only file that imports `expo-notifications`.
+- Rescheduling happens on launch, after every friend add/edit/delete, and whenever the app comes back to the foreground. The last one is cheap, and it fixes the timezone case for free: a reminder scheduled as an absolute moment is re-anchored to 09:00 local the next time the app opens.
+- Calls are queued, because "cancel all, then schedule all" run twice at once can leave duplicates.
+- Permission is asked once on first launch; if it's off, a dismissible banner explains reminders won't work and links to Settings.
+- The "Create card" prompt isn't stored anywhere: the friend screen shows it from the moment the reminder was due until the birthday. The same rule covers a tapped notification and a friend added too late for this year's reminder, and it warns when a printed card couldn't arrive in time.
+- Replaced the Milestone 0 spike with a dev-only screen listing what the OS has scheduled, plus a "test tap in 10 seconds" button for checking deep links without waiting for 9am.
